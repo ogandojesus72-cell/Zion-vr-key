@@ -35,8 +35,6 @@ npm start
 
 ---
 
----
-
 ## 🤝 COLABORADORES
 Este proyecto cuenta con el apoyo de inteligencia artificial avanzada para optimizar su lógica y estructura.
 
@@ -73,10 +71,9 @@ El cerebro detrás de toda la arquitectura de Kazuma y la red de sockets.
 
 ## 🛡️ CRÉDITOS
 * **Motor:** [Baileys](https://github.com/WhiskeySockets/Baileys)
-* **Diseño:** Félix (Inspirado en la estética Yotsuba & Dark)
-* **YouTube:** [@DustyCraft_Gaming](https://youtube.com/@DustyCraft_Gaming)
+* **Diseño:** Inspirado en mi API YOTSUBA
 
 ---
 <p align="center">
-  <i>Desarrollado con ❤️ en República Dominicana 🇩🇴</i>
+  <i>Desarrollado en la República Dominicana</i>
 </p>
