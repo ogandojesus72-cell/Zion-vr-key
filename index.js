@@ -17,6 +17,8 @@ import CFonts from 'cfonts';
 import { config } from './config.js';
 import { logger } from './config/print.js';
 import { pixelHandler } from './pixel.js';
+// --- IMPORTACIÓN DE SUB-BOTS ---
+import { loadAllSubBots } from './sockets/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,9 +28,9 @@ const question = (text) => new Promise((resolve) => rl.question(text, resolve));
 
 // --- VARIABLES GLOBALES ---
 global.commands = new Map();
-global.totalCommandsUsed = 0; // Contador de comandos para el status
+global.totalCommandsUsed = 0; 
 
-// --- FUNCIÓN GLOBAL DE CARGA (Hot-Reload para Update) ---
+// --- FUNCIÓN GLOBAL DE CARGA ---
 global.loadCommands = async () => {
     const commandsPath = path.resolve(__dirname, 'comandos');
     if (!fs.existsSync(commandsPath)) fs.mkdirSync(commandsPath);
@@ -92,13 +94,17 @@ async function startBot() {
 
     conn.ev.on('creds.update', saveCreds);
 
-    conn.ev.on('connection.update', (update) => {
+    conn.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) startBot();
         } else if (connection === 'open') {
-            console.log(chalk.green.bold('\n✅ KAZUMA ONLINE'));
+            console.log(chalk.green.bold('\n✅ KAZUMA PRINCIPAL ONLINE'));
+            
+            // --- ACTIVACIÓN AUTOMÁTICA DE SUB-BOTS ---
+            // Al abrir el principal, cargamos todos los sockets secundarios
+            await loadAllSubBots(conn);
         }
     });
 
@@ -106,17 +112,14 @@ async function startBot() {
         const m = chatUpdate.messages[0];
         if (!m.message || m.key.fromMe) return;
 
-        // --- LÓGICA DEL CONTADOR DE COMANDOS ---
         const type = Object.keys(m.message)[0];
         const body = (type === 'conversation') ? m.message.conversation : 
                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
                      (type === 'imageMessage' || type === 'videoMessage') ? m.message.imageMessage.caption : '';
 
-        // Si empieza con el prefijo o es un comando sin prefijo conocido, sumamos al contador
         if (body.startsWith(config.prefix)) {
             global.totalCommandsUsed++;
         } else {
-            // También contamos si el mensaje coincide con un nombre de comando o alias (para comandos sin prefijo)
             const firstWord = body.trim().split(/ +/)[0].toLowerCase();
             const exists = global.commands.has(firstWord) || 
                            Array.from(global.commands.values()).some(c => c.alias && c.alias.includes(firstWord));
