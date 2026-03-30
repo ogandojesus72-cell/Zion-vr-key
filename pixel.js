@@ -8,28 +8,30 @@ export const pixelHandler = async (conn, m, conf) => {
                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
                      (type === 'imageMessage' || type === 'videoMessage') ? m.message.imageMessage.caption : '';
 
-        if (!body || body.trim() === '') return;
+        if (!body || !body.trim()) return;
 
         const from = m.key.remoteJid;
         const isGroup = from.endsWith('@g.us');
         const sender = isGroup ? m.key.participant : from;
-        const isOwner = config.owner.some(num => sender.includes(num));
 
-        // Filtro de Privado
+        // --- LÓGICA DE OWNER MEJORADA ---
+        // Limpiamos el ID del sender para quedarnos solo con los números
+        const senderNumber = sender.split('@')[0];
+        // Comparamos con la lista en config.js
+        const isOwner = config.owner.some(num => num.replace(/[^0-9]/g, '') === senderNumber);
+
         if (!isGroup && !isOwner) return; 
 
         const prefix = config.prefix;
         const text = body.trim();
         const isCmd = text.startsWith(prefix);
         
-        // Extraer el nombre del comando correctamente
         const commandText = isCmd 
             ? text.slice(prefix.length).trim().split(/ +/)[0].toLowerCase() 
             : text.split(/ +/)[0].toLowerCase();
         
         const args = text.trim().split(/ +/).slice(1);
 
-        // Búsqueda por nombre o alias
         const cmd = global.commands.get(commandText) || 
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandText));
         
@@ -42,12 +44,17 @@ export const pixelHandler = async (conn, m, conf) => {
             isAdmin = participants.filter(v => v.admin !== null).map(v => v.id).includes(sender);
         }
 
-        // Validaciones
-        if (cmd.isOwner && !isOwner) return await conn.sendMessage(from, { text: '⚠️ *Comando exclusivo para Owner.*' }, { quoted: m });
-        if (cmd.isGroup && !isGroup) return await conn.sendMessage(from, { text: '🏢 *Solo para grupos.*' }, { quoted: m });
-        if (cmd.isAdmin && !isAdmin && isGroup) return await conn.sendMessage(from, { text: '❌ *Solo Admins.*' }, { quoted: m });
+        // VALIDACIONES
+        if (cmd.isOwner && !isOwner) {
+            return await conn.sendMessage(from, { text: '⚠️ *Acceso denegado:* Este comando es exclusivo de mi desarrollador.' }, { quoted: m });
+        }
+        
+        if (cmd.isGroup && !isGroup) return;
+        
+        if (cmd.isAdmin && !isAdmin && isGroup) {
+            return await conn.sendMessage(from, { text: '❌ *Solo Admins.*' }, { quoted: m });
+        }
 
-        // Ejecutar
         await cmd.run(conn, m, {
             args,
             prefix,
@@ -60,6 +67,6 @@ export const pixelHandler = async (conn, m, conf) => {
         });
 
     } catch (err) {
-        console.error(chalk.red('[ERROR HANDLER]:'), err);
+        console.error(chalk.red('[ERROR PIXEL-HANDLER]:'), err);
     }
 };
