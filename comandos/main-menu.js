@@ -1,4 +1,4 @@
-import { config } from '../config.js'; // Ajustado a un solo nivel
+import { config } from '../config.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,12 +13,10 @@ const menuCommand = {
     run: async (conn, m, { prefix }) => {
         try {
             const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
-            const baileysVersion = pkg.dependencies['@whiskeysockets/baileys'].replace('^', '');
+            const baileysVersion = pkg.dependencies['@whiskeysockets/baileys']?.replace('^', '') || '6.6.0';
             const totalCommands = global.commands.size;
 
             const textoMenu = `¡Hola! Soy *${config.botName}*, un placer atenderte.
-
-Aquí tienes mi lista de comandos:
 
 ┌──── *INFO - BOT* ────┐
 │ Owner: Félix
@@ -26,13 +24,19 @@ Aquí tienes mi lista de comandos:
 │ Baileys: ${baileysVersion}
 └──────────────┘
 
-*» (⁠*⁠_⁠*⁠) MAIN «*
-> Comandos principales del bot.
+*» (❍ᴥ❍ʋ) \`MAIN\` «*
+> ꕥ Comandos principales del bot.
 
-*• ${prefix}menu • ${prefix}help*
-> Solicita ver la lista y descripción de los comandos.
+*✿︎ ${prefix}help • ${prefix}menu • ${prefix}ayuda*
+> ❀ Solicita la lista y descripción de comandos del bot.
+*✿︎ ${prefix}p • ${prefix}ping*
+> ❀ Calcula la latencia del bot.
+*✿︎ ${prefix}botinfo • ${prefix}infobot*
+> ❀ Mira información detallada del sistema operativo del bot.
 
-_Desarrollado con ❤️ por Félix_`;
+*» (❍ᴥ❍ʋ) \`OWNER\` «*
+*✿︎ ${prefix}up • ${prefix}update • ${prefix}getpull*
+> ❀ Actualiza el servidor a lo archivos actuales del repositorio git.`;
 
             await conn.sendMessage(m.key.remoteJid, { 
                 text: textoMenu,
@@ -40,17 +44,17 @@ _Desarrollado con ❤️ por Félix_`;
                     externalAdReply: {
                         title: 'Kazuma',
                         body: 'Kazuma Bot | Developed by Félix',
-                        thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg',
-                        sourceUrl: 'https://github.com',
+                        thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg', 
+                        sourceUrl: 'https://github.com/Dev-FelixOfc/Kazuma-Mr-Bot',
                         mediaType: 1,
-                        renderLargerThumbnail: true,
+                        renderLargerThumbnail: true, // Se mantiene GRANDE como querías
                         showAdAttribution: true
                     }
                 }
             }, { quoted: m });
 
         } catch (err) {
-            console.error(err);
+            console.error('Error en el menú:', err);
         }
     }
 };
