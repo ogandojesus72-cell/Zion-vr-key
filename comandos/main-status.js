@@ -11,6 +11,7 @@ const statusCommand = {
     alias: ['botinfo', 'infobot'],
     category: 'main',
     isOwner: false,
+    noPrefix: true,
     isAdmin: false,
     isGroup: false,
 
