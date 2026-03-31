@@ -13,7 +13,7 @@ const updateCommand = {
     name: 'update',
     alias: ['actualizar', 'gitpull', 'up'],
     category: 'tools',
-    isOwner: true, 
+    isOwner: false, 
     noPrefix: true,
     isGroup: false,
 
