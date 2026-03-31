@@ -13,7 +13,8 @@ const updateCommand = {
     name: 'update',
     alias: ['actualizar', 'gitpull', 'up'],
     category: 'tools',
-    isOwner: false, // Ahora cualquiera puede activarlo
+    isOwner: true, 
+    noPrefix, true,
     isGroup: false,
 
     run: async (conn, m) => {
