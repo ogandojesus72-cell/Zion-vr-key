@@ -1,89 +1,75 @@
-import { config } from './config.js';
-import chalk from 'chalk';
+/* KURAYAMI - PIXEL HANDLER ENGINE 
+   Desarrollado por Félix OFC
+   Sistema de Procesamiento de Mensajes y Normalización LID
+*/
 
-export const pixelHandler = async (conn, m, conf) => {
+import chalk from 'chalk';
+import { config } from './config.js';
+import { logger } from './config/print.js';
+import { syncLid } from './lid/resolver.js'; // Importamos tu nuevo motor LID
+
+/**
+ * Handler principal para procesar mensajes entrantes
+ */
+export const pixelHandler = async (conn, m) => {
     try {
-        // Detectar el tipo de mensaje y extraer el cuerpo del texto
+        if (!m.message) return;
+        if (m.key && m.key.remoteJid === 'status@broadcast') return;
+
+        // 1. --- NORMALIZACIÓN DE IDENTIDAD (LID ENGINE) ---
+        // Esto traduce los IDs raros de WhatsApp a números de teléfono reales
+        m.sender = await syncLid(conn, m, m.chat);
+
+        // 2. Extracción de cuerpo del mensaje
         const type = Object.keys(m.message)[0];
         const body = (type === 'conversation') ? m.message.conversation : 
                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
-                     (type === 'imageMessage' || type === 'videoMessage') ? m.message.imageMessage.caption : '';
+                     (type === 'imageMessage' || type === 'videoMessage') ? m.message.imageMessage.caption : 
+                     (type === 'buttonsResponseMessage') ? m.message.buttonsResponseMessage.selectedButtonId : 
+                     (type === 'listResponseMessage') ? m.message.listResponseMessage.singleSelectReply.selectedRowId : '';
 
-        // Si no hay texto, ignoramos el mensaje
-        if (!body || !body.trim()) return;
-
-        const from = m.key.remoteJid;
-        const isGroup = from.endsWith('@g.us');
-        
-        // --- LÓGICA ANTI-LID / JID ---
-        // Obtenemos quién envía el mensaje (en grupos m.key.participant puede ser LID)
-        const sender = isGroup ? m.key.participant : from;
-        
-        // Limpiamos el ID: nos quedamos solo con los números (ej: 573508941325)
-        const senderNumber = sender.replace(/[^0-9]/g, '');
-
-        // Verificamos si el número limpio está en la lista de owner de config.js
-        const isOwner = config.owner.some(num => num.replace(/[^0-9]/g, '') === senderNumber);
-
-        // Filtro de Seguridad: En privado, el bot solo responde al Owner
-        if (!isGroup && !isOwner) return; 
-
+        // 3. Variables de entorno del mensaje
         const prefix = config.prefix;
-        const text = body.trim();
-        const isCmd = text.startsWith(prefix);
+        const isCmd = body.startsWith(prefix);
+        const command = isCmd ? body.slice(prefix.length).trim().split(/ +/).shift().toLowerCase() : '';
+        const args = body.trim().split(/ +/).slice(1);
+        const text = args.join(' ');
         
-        // Extraer el nombre del comando
-        const commandText = isCmd 
-            ? text.slice(prefix.length).trim().split(/ +/)[0].toLowerCase() 
-            : text.split(/ +/)[0].toLowerCase();
+        // 4. Validaciones de Usuario (Ahora seguras con LID Resolver)
+        const isOwner = [conn.user.id.split(':')[0], ...config.ownerNumbers].some(num => m.sender.includes(num));
+        const isGroup = m.chat.endsWith('@g.us');
         
-        const args = text.trim().split(/ +/).slice(1);
+        // 5. Registro en consola (Logger)
+        logger(m, conn);
 
-        // Buscar el comando por nombre o alias en el mapa global
-        const cmd = global.commands.get(commandText) || 
-                    Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandText));
-        
-        // Si el comando no existe, no hacemos nada
-        if (!cmd) return;
+        // 6. Ejecución de comandos
+        if (isCmd) {
+            const cmd = global.commands.get(command) || 
+                        Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(command));
 
-        // Obtener datos del grupo si aplica
-        let groupMetadata, participants, isAdmin = false;
-        if (isGroup) {
-            groupMetadata = await conn.groupMetadata(from);
-            participants = groupMetadata.participants;
-            // Verificamos si el senderNumber (limpio) coincide con algún admin (también limpio)
-            isAdmin = participants.filter(v => v.admin !== null).map(v => v.id.replace(/[^0-9]/g, '')).includes(senderNumber);
+            if (cmd) {
+                // Validación de permisos
+                if (cmd.isOwner && !isOwner) {
+                    return m.reply('❌ Este comando es exclusivo para mi desarrollador.');
+                }
+
+                if (cmd.isGroup && !isGroup) {
+                    return m.reply('❌ Este comando solo puede ser usado en grupos.');
+                }
+
+                // Ejecución del comando
+                await cmd.run(conn, m, { 
+                    prefix, 
+                    command, 
+                    args, 
+                    text, 
+                    isOwner, 
+                    isGroup 
+                });
+            }
         }
-
-        // --- VALIDACIONES DE ACCESO ---
-        
-        // 1. Validación de Owner: Solo si el archivo del comando tiene isOwner: true
-        if (cmd.isOwner && !isOwner) {
-            return await conn.sendMessage(from, { text: '⚠️ *Acceso Denegado:* Este comando es exclusivo de mi desarrollador.' }, { quoted: m });
-        }
-        
-        // 2. Validación de Grupo
-        if (cmd.isGroup && !isGroup) return;
-        
-        // 3. Validación de Admin en Grupos
-        if (cmd.isAdmin && !isAdmin && isGroup) {
-            return await conn.sendMessage(from, { text: '❌ *Solo los Administradores pueden usar este comando.*' }, { quoted: m });
-        }
-
-        // --- EJECUCIÓN ---
-        await cmd.run(conn, m, {
-            args,
-            prefix,
-            command: commandText,
-            isOwner,
-            isAdmin,
-            isGroup,
-            senderNumber, // Pasamos el número limpio por si el comando lo usa
-            participants,
-            groupMetadata
-        });
 
     } catch (err) {
-        console.error(chalk.red('[ERROR PIXEL-HANDLER]:'), err);
+        console.error(chalk.red('\n[❌] ERROR EN PIXEL HANDLER:'), err);
     }
 };
