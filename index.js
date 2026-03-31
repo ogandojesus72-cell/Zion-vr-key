@@ -85,9 +85,9 @@ async function startBot() {
     await global.loadCommands();
 
     if (!conn.authState.creds.registered) {
-        console.log(chalk.yellow('\n  ╔══════════════════════════════════════════╗'));
+        console.log(chalk.yellow('\n  ╔══════════════════════════════════════╗'));
         console.log(chalk.yellow('  ║    VINCULACIÓN DEL BOT PRINCIPAL         ║'));
-        console.log(chalk.yellow('  ╚══════════════════════════════════════════╝'));
+        console.log(chalk.yellow('  ╚══════════════════════════════════════╝'));
 
         let phoneNumber = "";
         let isValid = false;
@@ -119,9 +119,9 @@ async function startBot() {
                 let code = await conn.requestPairingCode(phoneNumber);
                 code = code?.match(/.{1,4}/g)?.join('-') || code;
 
-                console.log('\n' + chalk.black.bgCyan('  ╔══════════════════════════════════════╗  '));
+                console.log('\n' + chalk.black.bgCyan('  ╔════════════════════════════════════╗  '));
                 console.log(chalk.black.bgCyan(`  ║          CODIGO: ${code}          ║  `));
-                console.log(chalk.black.bgCyan('  ╚══════════════════════════════════════╝  ') + '\n');
+                console.log(chalk.black.bgCyan('  ╚════════════════════════════════════╝  ') + '\n');
 
             } catch (error) {
                 console.error(chalk.red('  [!] Error de Baileys:'), error.message);
@@ -139,9 +139,9 @@ async function startBot() {
         if (connection === 'close') {
             const isLoggedOut = lastDisconnect.error?.output?.statusCode === DisconnectReason.loggedOut;
             if (isLoggedOut) {
-                console.log(chalk.red.bold('\n  ┌──────────────────────────────────────────┐'));
+                console.log(chalk.red.bold('\n  ┌─────────────────────────────────────┐'));
                 console.log(chalk.red.bold('  │       SESIÓN CERRADA / INVALIDADA        │'));
-                console.log(chalk.red.bold('  └──────────────────────────────────────────┘'));
+                console.log(chalk.red.bold('  └─────────────────────────────────────┘'));
                 if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
                 process.exit(0);
             } else {
