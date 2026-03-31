@@ -10,7 +10,7 @@ const pingCommand = {
     alias: ['p', 'speed', 'latencia'],
     category: 'main',
     isOwner: false,
-    noPrefix, true,
+    noPrefix: true,
     isAdmin: false,
     isGroup: false,
 
