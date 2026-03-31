@@ -12,39 +12,38 @@ const listSocketsCommand = {
     isOwner: false,
     isAdmin: false,
     isGroup: true, 
+    noPrefix: true, // Para que funcione con o sin prefijo
 
-    run: async (conn, m) => {
+    run: async (conn, m, { isGroup }) => {
         const from = m.chat;
 
         try {
-            // 1. Obtener metadatos frescos para asegurar compatibilidad LID
+            // 1. Obtener datos frescos del grupo (Evitamos depender de parámetros externos)
             const groupMetadata = await conn.groupMetadata(from).catch(() => null);
-            if (!groupMetadata) return m.reply('❌ No pude obtener la información del grupo.');
+            if (!groupMetadata) return m.reply('❌ Error: No se pudo obtener la información del grupo.');
 
-            // 2. Ruta de sesiones (Ajusta './sesiones_subbots' si tu carpeta se llama distinto)
+            // 2. Ruta de sesiones (Ajustada a la estructura de Kazuma)
             const sessionsPath = path.resolve('./sesiones_subbots');
             let totalSubBots = 0;
             if (fs.existsSync(sessionsPath)) {
-                // Filtramos para contar solo carpetas reales de sesión
                 totalSubBots = fs.readdirSync(sessionsPath).filter(f => {
-                    return fs.statSync(path.join(sessionsPath, f)).isDirectory() && !f.startsWith('.');
+                    const fullPath = path.join(sessionsPath, f);
+                    return fs.statSync(fullPath).isDirectory() && !f.startsWith('.');
                 }).length;
             }
 
-            // 3. Identificar Sockets (Principal + Subbots activos en memoria)
+            // 3. Identificar Sockets Activos
             const mainBotJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
-            
-            // Verificamos si existe el objeto global de subbots
             const activeSubBotsJids = global.subBots ? Array.from(global.subBots.keys()) : []; 
 
-            // Filtramos participantes que sean parte de la red Kurayami
+            // Filtro con soporte LID integrado directamente aquí
             const botsInGroup = groupMetadata.participants.filter(p => {
                 const jid = p.id;
                 const lid = p.lid || null;
                 return jid === mainBotJid || activeSubBotsJids.includes(jid) || (lid && activeSubBotsJids.includes(lid));
             });
 
-            // 4. Construir menciones
+            // 4. Construir menciones visuales
             let mentionsJid = [];
             let listaMenciones = "";
 
@@ -54,7 +53,7 @@ const listSocketsCommand = {
                 listaMenciones += `   ➪ @${jid.split('@')[0]}\n`;
             });
 
-            // 5. Mensaje Final
+            // 5. Cuerpo del mensaje (Estilo Kurayami)
             const texto = `
 ✿︎ \`LISTA DE SOCKETS ACTIVOS\` ✿︎
 
@@ -63,7 +62,7 @@ const listSocketsCommand = {
 
 *⌨︎ Nodos en este grupo » ${botsInGroup.length}*
 
-${listaMenciones || "_No hay más nodos en este grupo._"}
+${listaMenciones || "_No se detectaron más nodos de la red._"}
 `.trim();
 
             await conn.sendMessage(from, { 
@@ -82,8 +81,6 @@ ${listaMenciones || "_No hay más nodos en este grupo._"}
 
         } catch (err) {
             console.error('Error en socket monitor:', err);
-            // Si hay un error, el bot al menos avisa
-            await conn.sendMessage(from, { text: '❌ Error interno en el motor de sockets.' }, { quoted: m });
         }
     }
 };
