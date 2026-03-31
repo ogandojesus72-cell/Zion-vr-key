@@ -20,16 +20,58 @@
 3. Vincula tu número siguiendo las instrucciones de la consola.
 
 ### 📱 Termux / VPS / Actualizar
+
+# 1. Dar permisos de almacenamiento (Acepta el mensaje que saldrá en pantalla)
 ```bash
-# Instalación e Inicio
-git clone [https://github.com/Dev-FelixOfc/kazuma-bot.git](https://github.com/Dev-FelixOfc/kazuma-bot.git)
-cd kazuma-bot
+termux-setup-storage
+```
+
+# 2. Actualizar los paquetes del sistema
+
+```bash
+pkg update && pkg upgrade -y
+```
+
+# 3. Instalar las herramientas necesarias (Git y Node.js)
+
+```bash
+pkg install git nodejs -y
+```
+
+# 4. Clonar el repositorio git
+
+```bash
+git clone https://github.com/Dev-FelixOfc/Kazuma-Mr-Bot
+```
+
+# 5. Entrar a la carpeta del proyecto
+
+```bash
+cd Kazuma-Mr-Bot
+```
+
+# 6. Instalar las dependencias del bot
+
+```bash
 npm install
+```
+
+# 7. Iniciar el bot por primera vez
+
+```bash
 npm start
+```
 
 # Para Actualizar en el futuro
+```bash
 git pull
+```
+
+```bash
 npm install
+```
+
+```bash
 npm start
 ```
 
