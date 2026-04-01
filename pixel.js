@@ -1,5 +1,5 @@
-/* KURAYAMI TEAM - PIXEL HANDLER (SECURITY V2) 
-   Lógica: Identidad Dual + Muro de Privado Anti-Spam
+/* KURAYAMI TEAM - PIXEL HANDLER (DIAGNÓSTICO ACTIVO) 
+   Lógica: Identidad Dual + Alerta de Rango
 */
 
 import chalk from 'chalk';
@@ -12,6 +12,17 @@ export const pixelHandler = async (conn, m, config) => {
         if (chat === 'status@broadcast') return;
 
         const sender = m.sender || m.key.participant || m.key.remoteJid;
+        
+        // 🛡️ --- LAS LLAVES MAESTRAS DE FÉLIX ---
+        const misIdentidades = [
+            '573508941325@s.whatsapp.net', // Tu JID (Privado)
+            '125860308893859@lid'          // Tu LID (Grupo)
+        ];
+
+        // Comprobación directa
+        const isOwner = misIdentidades.includes(sender);
+        const isGroup = chat.endsWith('@g.us');
+
         const type = Object.keys(m.message)[0];
         const body = (type === 'conversation') ? m.message.conversation : 
                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
@@ -21,20 +32,11 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!body) return;
 
-        // 1. --- VALIDACIÓN DE DUEÑO E IDENTIDAD ---
-        const owners = Array.isArray(config.owner) ? config.owner : [config.owner];
-        const isOwner = owners.includes(sender);
-        const isGroup = chat.endsWith('@g.us');
-
-        // 2. --- MURO ANTI-SPAM (SOLO OWNER EN PRIVADO) ---
-        // Si no es grupo y no eres owner, el bot se desconecta de la lógica aquí mismo.
+        // --- MURO DE PRIVADO ---
         if (!isGroup && !isOwner) {
-            // Solo permitimos el comando 'code' o vinculación si es necesario
-            const firstWord = body.trim().split(/ +/)[0].toLowerCase();
-            if (firstWord !== 'code' && firstWord !== 'vinculación') return; 
+            if (body.toLowerCase() !== 'code') return; 
         }
 
-        // 3. --- LÓGICA DE PREFIJOS ---
         const allPrefixes = config.allPrefixes || ['#', '!', '.'];
         const usedPrefix = allPrefixes.find(p => body.startsWith(p));
         
@@ -45,20 +47,20 @@ export const pixelHandler = async (conn, m, config) => {
         const args = body.trim().split(/ +/).slice(1);
         const text = args.join(' ');
 
-        // 4. --- EJECUCIÓN ---
         const cmd = global.commands.get(commandName) || 
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (cmd) {
-            // Protección adicional: Si el comando no es noPrefix y no se usó prefijo, ignorar.
             if (!usedPrefix && !cmd.noPrefix) return;
 
-            // Validación de rango
-            if (cmd.isOwner && !isOwner) return; // Ni siquiera responde para no dar pistas
+            // 🔱 --- EL "CHISMOSO" DE SEGURIDAD ---
+            if (cmd.isOwner && !isOwner) {
+                // Si el bot te responde esto, es que NO reconoció tu LID/JID actual
+                return m.reply(`🚫 *ACCESO DENEGADO*\n\nTu ID actual: \`${sender}\` no está en la lista de dueños de **Kurayami Host**.\n\n_Si eres el dueño, verifica que este ID coincida con el código._`);
+            }
 
-            if (cmd.isGroup && !isGroup) return m.reply('❌ Este comando es solo para grupos.');
+            if (cmd.isGroup && !isGroup) return m.reply('❌ Comando solo para grupos.');
 
-            // Si todo está bien, registramos y ejecutamos
             logger(m, conn);
             await cmd.run(conn, m, { 
                 body, 
@@ -73,6 +75,6 @@ export const pixelHandler = async (conn, m, config) => {
         }
 
     } catch (err) {
-        console.error(chalk.red('[ERROR HANDLER]'), err);
+        console.error(chalk.red('[ERROR]'), err);
     }
 };
