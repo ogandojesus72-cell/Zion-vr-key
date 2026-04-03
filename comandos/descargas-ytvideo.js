@@ -61,18 +61,20 @@ const ytVideoCommand = {
                 return m.reply(`*${e1} Error:* No se pudo obtener el enlace de descarga.`);
             }
 
-            const { title, uploader, views, size, duration, dl } = json.data;
+            const { title, uploader, views, size, duration, dl, thumb } = json.data;
 
-            // --- SOLUCIÓN AL ERROR DE REPRODUCCIÓN ---
-            // Descargamos el video como Buffer para que WhatsApp lo reciba completo
-            const videoBuffer = await fetch(dl).then(res => res.buffer());
+            // --- TRUCO PARA QUE PAREZCA ENVIADO POR USUARIO ---
+            // Descargamos la miniatura para que WhatsApp la use de previsualización
+            const thumbBuffer = await fetch(thumb).then(res => res.buffer());
 
-            // 2. ENVÍO DEL VIDEO REAL
+            // 2. ENVÍO DEL VIDEO REAL CON THUMBNAIL
             await conn.sendMessage(from, { 
-                video: videoBuffer, // Enviamos el buffer, no la URL
+                video: { url: dl }, // Usamos la URL para que Baileys gestione el streaming
                 caption: `*${e1} TÍTULO:* ${title}\n*👤 CANAL:* ${uploader}\n*👁️ VISTAS:* ${views}\n*⌛ DURACIÓN:* ${duration}\n*📦 PESO:* ${size}\n\n> Kazuma-Bot | Félix Ofc`,
+                mimetype: 'video/mp4',
                 fileName: `${title}.mp4`,
-                mimetype: 'video/mp4'
+                thumbnail: thumbBuffer, // Esto genera la imagen de previsualización
+                seconds: 60 // Valor aproximado para forzar que WhatsApp lo trate como video corto/real
             }, { quoted: m });
 
         } catch (error) {
