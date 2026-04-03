@@ -17,16 +17,16 @@ const ytSearchCommand = {
         const e1 = config.visuals.emoji;
         const e2 = config.visuals.emoji2;
 
-        if (!text) return m.reply(`${e1} Ingresa el nombre del video a buscar.`);
+        if (!text) return conn.sendMessage(from, { text: `${e1} Ingresa el nombre del video a buscar.` }, { quoted: m });
 
         try {
-            await m.reply(`${e2} Buscando resultados para: ${text}...`);
+            await conn.sendMessage(from, { text: `${e2} Buscando resultados para: ${text}...` }, { quoted: m });
 
             const res = await fetch(`https://api.stellarwa.xyz/search/yt?query=${encodeURIComponent(text)}&key=api-Bb1JX`);
             const json = await res.json();
 
             if (!json.status || !json.result || json.result.length === 0) {
-                return m.reply(`${e1} No se encontraron resultados.`);
+                return conn.sendMessage(from, { text: `${e1} No se encontraron resultados.` }, { quoted: m });
             }
 
             const results = json.result.slice(0, 10);
@@ -36,9 +36,8 @@ const ytSearchCommand = {
             results.forEach((v, i) => {
                 txt += `*${i + 1}.* ${v.title}\n${e1} Duración: ${v.duration}\n${e1} Canal: ${v.autor}\n\n`;
             });
-            txt += `${e2} *Responde con un número para descargar en MP3.*`;
+            txt += `${e2} *Responde con un número para descargar el audio.*`;
 
-            // Enviamos el banner del primer resultado como foto normal
             await conn.sendMessage(from, { 
                 image: { url: results[0].banner }, 
                 caption: txt 
@@ -46,7 +45,7 @@ const ytSearchCommand = {
 
         } catch (e) {
             console.error(e);
-            m.reply(`${e1} Error al conectar con el servidor.`);
+            conn.sendMessage(from, { text: `${e1} Error al conectar con el buscador.` }, { quoted: m });
         }
     }
 };
@@ -67,13 +66,13 @@ export const before = async (conn, m) => {
     const selectedLink = links[index];
 
     try {
-        await m.reply(`${e2} Descargando audio (MP3)...`);
+        await conn.sendMessage(from, { text: `${e2} Descargando audio (MP3)...` }, { quoted: m });
         
         const res = await fetch(`https://api.stellarwa.xyz/dl/ytdl?url=${encodeURIComponent(selectedLink)}&format=mp3&key=api-Bb1JX`);
         const data = await res.json();
 
         const dlLink = data.result?.download || data.data?.dl;
-        if (!dlLink) return m.reply(`${e1} No se pudo generar el link.`);
+        if (!dlLink) return conn.sendMessage(from, { text: `${e1} No se pudo generar el link.` }, { quoted: m });
 
         const audioBuffer = await fetch(dlLink).then(r => r.buffer());
 
@@ -84,7 +83,7 @@ export const before = async (conn, m) => {
         }, { quoted: m });
 
     } catch (e) {
-        m.reply(`${e1} Error al procesar el audio.`);
+        conn.sendMessage(from, { text: `${e1} Error al procesar el audio.` }, { quoted: m });
     }
 };
 
