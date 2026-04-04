@@ -10,6 +10,7 @@ const profileCommand = {
     alias: ['perfil'],
     category: 'rpg',
     noPrefix: true,
+
     run: async (conn, m) => {
         const from = m.chat;
         const e1 = config.visuals.emoji;
