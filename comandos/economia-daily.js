@@ -9,6 +9,7 @@ const dailyCommand = {
     alias: ['diario'],
     category: 'economy',
     noPrefix: true,
+
     run: async (conn, m) => {
         const from = m.chat;
         const e1 = config.visuals.emoji;
