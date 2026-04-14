@@ -18,9 +18,9 @@ const codeCommand = {
         const from = m.key.remoteJid;
         const sender = m.sender || m.key.participant || from;
 
-        const subbotsPath = './sesion_bot/subbots'; 
-        if (fs.existsSync(subbotsPath)) {
-            const totalSubbots = fs.readdirSync(subbotsPath).length;
+        const sessionsPath = path.resolve('./sesiones_subbots');
+        if (fs.existsSync(sessionsPath)) {
+            const totalSubbots = fs.readdirSync(sessionsPath).length;
             if (totalSubbots >= 75) {
                 return await conn.sendMessage(from, { 
                     text: `*❁* \`Límite alcanzado\` *❁*\n\nLo siento, el sistema solo permite un máximo de *75 subbots* activos.\n\n> ¡Pronto ampliaremos nuestra capacidad!` 
