@@ -30,6 +30,36 @@ export const pixelHandler = async (conn, m, config) => {
             ? body.slice(usedPrefix.length).trim().split(/ +/).shift().toLowerCase()
             : body.trim().split(/ +/).shift().toLowerCase();
 
+        // --- LÓGICA DE BOT PRIMARIO (FILTRO DE EJECUCIÓN) ---
+        if (isGroup && commandName !== 'setprimary') {
+            const databasePath = path.resolve('./jsons/preferencias.json');
+            const sessionsPath = path.resolve('./sesiones_subbots');
+            
+            // Obtenemos mi número de forma segura (limpiando JID y dispositivos)
+            const myJid = conn.user.id.split(':')[0].split('@')[0];
+
+            if (fs.existsSync(databasePath)) {
+                let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
+                
+                if (db[chat]) {
+                    const primaryNumber = db[chat].replace(/[^0-9]/g, '');
+                    
+                    // Verificamos si el primario sigue activo (carpeta existe o es el principal)
+                    const isSubbotActive = fs.existsSync(path.join(sessionsPath, primaryNumber));
+                    const isMainActive = true; // El principal siempre se considera activo si está corriendo el pixel
+
+                    if (isSubbotActive || primaryNumber === myJid) {
+                        // SI NO SOY EL ELEGIDO, ME QUEDO CALLADO
+                        if (myJid !== primaryNumber) return; 
+                    } else {
+                        // Si el bot elegido ya no existe, liberamos el grupo
+                        delete db[chat];
+                        fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
+                    }
+                }
+            }
+        }
+
         const args = body.trim().split(/ +/).slice(1);
         const text = args.join(' ');
 
@@ -37,29 +67,6 @@ export const pixelHandler = async (conn, m, config) => {
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (!cmd) return;
-
-        // --- LÓGICA DE BOT PRIMARIO (FILTRO DE EJECUCIÓN) ---
-        if (isGroup && commandName !== 'setprimary') {
-            const databasePath = path.resolve('./jsons/preferencias.json');
-            const sessionsPath = path.resolve('./sesiones_subbots');
-            const myNumber = conn.user.id.split(':')[0].split('@')[0];
-
-            if (fs.existsSync(databasePath)) {
-                let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
-                
-                if (db[chat]) {
-                    const primaryNumber = db[chat];
-                    const isPrimaryActive = fs.existsSync(path.join(sessionsPath, primaryNumber)) || primaryNumber === myNumber;
-
-                    if (isPrimaryActive) {
-                        if (myNumber !== primaryNumber) return; // Si no soy el elegido, ignoro el comando
-                    } else {
-                        delete db[chat];
-                        fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
-                    }
-                }
-            }
-        }
 
         if (!usedPrefix && !cmd.noPrefix) return;
         if (!isGroup && !isOwner && commandName !== 'code') return;
