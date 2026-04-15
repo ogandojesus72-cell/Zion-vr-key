@@ -50,6 +50,8 @@ const menuCommand = {
 > ❀ Mira la lista de sockets activos.
 *✿︎ ${prefix}setprimary (@socket)*
 > ❀ Nombre a un socket como principal del grupo.
+*✿︎ ${prefix}delprimary*
+> ❀ Haz que todos los sockets respondan.
 
 *» (❍ᴥ❍ʋ) \`GESTIÓN\` «*
 > ꕥ Comandos para gestión del grupo.
