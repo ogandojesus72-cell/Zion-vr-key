@@ -76,9 +76,11 @@ async function startBot() {
     });
 
     await global.loadCommands();
-    
-    // --- ACTIVACIÓN DEL DETECTOR DE EVENTOS (INTEGRACIÓN SILENCIOSA) ---
-    (await import('./comandos/grupos-detect.js')).default(conn);
+
+    // --- ACTIVACIÓN DINÁMICA DE DETECTORES ---
+    import('./comandos/grupos-detect.js').then(m => {
+        m.default(conn);
+    }).catch(e => console.error(chalk.red("  [❌] Error cargando detector:"), e.message));
 
     if (!conn.authState.creds.registered) {
         setTimeout(async () => {
@@ -111,6 +113,7 @@ async function startBot() {
         let m = chatUpdate.messages[0];
         if (!m.message || m.key.fromMe) return;
 
+        // --- SERIALIZACIÓN MANUAL ---
         m.reply = (text) => conn.sendMessage(m.key.remoteJid, { text }, { quoted: m });
 
         await pixelHandler(conn, m, config);
