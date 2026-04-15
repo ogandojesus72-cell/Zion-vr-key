@@ -1,11 +1,11 @@
-/* KAZUMA MISTER BOT - EVENT DETECTOR (FIXED) */
+/* KAZUMA MISTER BOT - EVENT DETECTOR (LOGIC) */
 import fs from 'fs';
 import path from 'path';
 
 const databasePath = path.resolve('./jsons/grupos.json');
 
-export default async (conn) => {
-    // Escucha de participantes (Promote/Demote)
+export const detectHandler = async (conn) => {
+    // --- EVENTO: CAMBIOS EN PARTICIPANTES (ADMINS) ---
     conn.ev.on('group-participants.update', async (update) => {
         try {
             const { id, participants, action, author } = update;
@@ -16,14 +16,13 @@ export default async (conn) => {
 
             for (let user of participants) {
                 const phone = user.split('@')[0];
-                // Si no hay author, es porque lo hizo el sistema o un bot
                 const actor = author ? author.split('@')[0] : 'un Administrador';
                 let aviso = '';
 
                 if (action === 'promote') {
-                    aviso = `*✿︎* \`Nuevo Administrador\` *✿︎*\n\nEl usuario *@${phone}* fue promovido a Administrador por *@${actor}*.\n\n> ¡Felicidades por el cargo!`;
+                    aviso = `*✿︎* \`Nuevo Administrador\` *✿︎*\n\nEl usuario *@${phone}* ha sido promovido a Administrador por *@${actor}*.\n\n> ¡Felicidades por el nuevo cargo!`;
                 } else if (action === 'demote') {
-                    aviso = `*❁* \`Remoción de Cargo\` *❁*\n\nEl usuario *@${phone}* fue degradado de su cargo por *@${actor}*.\n\n> ¡A seguir participando!`;
+                    aviso = `*❁* \`Remoción de Cargo\` *❁*\n\nEl usuario *@${phone}* fue degradado de su cargo por *@${actor}*.\n\n> ¡Seguimos trabajando!`;
                 }
 
                 if (aviso) {
@@ -34,11 +33,11 @@ export default async (conn) => {
                 }
             }
         } catch (e) {
-            console.error("Error en Detect (Participants):", e);
+            console.error("Error en Detect Participantes:", e);
         }
     });
 
-    // Escucha de cambios de configuración del grupo (StubType)
+    // --- EVENTO: CAMBIOS EN AJUSTES DEL GRUPO (NOMBRE/FOTO) ---
     conn.ev.on('messages.upsert', async ({ messages }) => {
         try {
             const m = messages[0];
@@ -53,16 +52,11 @@ export default async (conn) => {
             const phone = actor.split('@')[0];
             let cambio = '';
 
-            // Mapeo de eventos de Baileys
-            const stubTypes = {
-                21: `cambió el nombre a: *${m.messageStubParameters[0]}*`,
-                22: `actualizó la foto del grupo.`,
-                24: `editó la descripción del grupo.`,
-                25: `cambió los ajustes: *${m.messageStubParameters[0] == 'on' ? 'Solo Admins' : 'Todos'}* pueden editar.`,
-                26: `cambió los ajustes: *${m.messageStubParameters[0] == 'on' ? 'Chat Cerrado' : 'Chat Abierto'}*.`
-            };
-
-            cambio = stubTypes[m.messageStubType];
+            // Mapeo de StubTypes de Baileys
+            if (m.messageStubType == 21) cambio = `cambió el nombre a: *${m.messageStubParameters[0]}*`;
+            if (m.messageStubType == 22) cambio = `actualizó la foto del grupo.`;
+            if (m.messageStubType == 24) cambio = `editó la descripción del grupo.`;
+            if (m.messageStubType == 25) cambio = `cambió los permisos de edición a: *${m.messageStubParameters[0] == 'on' ? 'Solo Admins' : 'Todos'}*`;
 
             if (cambio) {
                 await conn.sendMessage(chat, { 
@@ -71,7 +65,10 @@ export default async (conn) => {
                 });
             }
         } catch (e) {
-            console.error("Error en Detect (Stub):", e);
+            console.error("Error en Detect Stub:", e);
         }
     });
 };
+
+// Export por defecto para compatibilidad
+export default detectHandler;
