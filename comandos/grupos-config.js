@@ -35,13 +35,13 @@ const configOnOff = {
         
         if (!feature || !validFeatures.includes(feature)) {
             return await conn.sendMessage(from, { 
-                text: `*❁* \`Configuración de Grupo\` *❁*\n\nDebes especificar una función válida para configurar.\n\n*✿︎ Funciones disponibles:* \`${validFeatures.join(', ')}\`\n\n> Ejemplo: *${usedPrefix}${validFeatures[0]} on*` 
+                text: `*❁* \`Configuración de Grupo\` *❁*\n\nDebes especificar una función válida para configurar.\n\n*✿︎ Funciones disponibles:* \`${validFeatures.join(', ')}\`\n\n> Ejemplo: *#${validFeatures[0]} on*` 
             }, { quoted: m });
         }
 
         if (!action || !['on', 'off', 'enable', 'disable'].includes(action)) {
             return await conn.sendMessage(from, { 
-                text: `*❁* \`Estado Faltante\` *❁*\n\n¿Qué deseas hacer con la función *${feature}*?\n\n*✿︎ Opciones:* \`on / off\`\n\n> Ejemplo: *${prefix}${feature} on*` 
+                text: `*❁* \`Estado Faltante\` *❁*\n\n¿Qué deseas hacer con la función *${feature}*?\n\n*✿︎ Opciones:* \`on / off\`\n\n> Ejemplo: *${Prefix}${feature} on*` 
             }, { quoted: m });
         }
 
