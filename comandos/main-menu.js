@@ -48,7 +48,14 @@ const menuCommand = {
 > ❀ Hazte SubBot de Kazuma.
 *✿︎ ${prefix}bots • ${prefix}sockets*
 > ❀ Mira la lista de sockets activos.
+*✿︎ ${prefix}setprimary (@socket)*
+> ❀ Nombre a un socket como principal del grupo.
 
+*» (❍ᴥ❍ʋ) \`GESTIÓN\` «*
+> ꕥ Comandos para gestión del grupo.
+
+*✿︎ ${prefix}detect on/off*
+> ❀ Activa o desactiva los avisos en el grupo.
 
 *» (❍ᴥ❍ʋ) \`OWNER\` «*
 > ꕥ Comandos personalizados para el creador.
