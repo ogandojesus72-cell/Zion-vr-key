@@ -1,50 +1,45 @@
+/* KAZUMA MISTER BOT - CONFIGURACIÓN DE GRUPO */
 import fs from 'fs';
 import path from 'path';
 
 const databasePath = path.resolve('./jsons/grupos.json');
 
 const configOnOff = {
-    command: ['detect', 'alerts', 'alertas'], // Puedes añadir más aquí luego
+    name: 'config',
+    alias: ['on', 'off', 'detect', 'alertas'],
     category: 'grupo',
     isAdmin: true,
     isGroup: true,
+    noPrefix: true, // El sello distintivo de Kazuma
 
-    run: async (conn, m, args, usedPrefix, command) => {
+    run: async (conn, m, args, usedPrefix, commandName) => {
         const from = m.key.remoteJid;
-        const stateArg = args[0]?.toLowerCase();
-        const validStates = ['on', 'off', 'enable', 'disable'];
+        
+        // Identificamos la función y la acción
+        const feature = (commandName === 'config') ? args[0]?.toLowerCase() : 'detect';
+        const action = (commandName === 'config') ? args[1]?.toLowerCase() : args[0]?.toLowerCase();
 
-        // Mapeo de nombres para el JSON y para el texto
-        const featureKey = 'detect'; // Por ahora solo manejamos detect
-        const featureName = 'las *Alertas de Grupo*';
+        if (feature !== 'detect') {
+            return m.reply(`*❁* \`Error de Función\` *❁*\n\nPor ahora solo puedes configurar: *detect*.\n\n> Ejemplo: *${usedPrefix}detect on*`);
+        }
 
+        if (!action || !['on', 'off', 'enable', 'disable'].includes(action)) {
+            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Qué quieres hacer con *${feature}*?\n\n*✿︎ Opciones:* \`on / off\`\n\n> Ejemplo: *${usedPrefix}${commandName} on*`);
+        }
+
+        const enabled = ['on', 'enable'].includes(action);
+
+        // Manejo de base de datos JSON
         if (!fs.existsSync(path.resolve('./jsons'))) fs.mkdirSync(path.resolve('./jsons'));
         let db = fs.existsSync(databasePath) ? JSON.parse(fs.readFileSync(databasePath, 'utf-8')) : {};
+        
         if (!db[from]) db[from] = {};
-
-        const current = db[from][featureKey] === true;
-        const estadoActual = current ? '✓ Activado' : '✗ Desactivado';
-
-        if (!stateArg) {
-            return conn.sendMessage(from, { 
-                text: `*✿︎ Configuración (✿❛◡❛)*\n\nꕥ Un administrador puede activar o desactivar ${featureName} utilizando:\n\n● _Habilitar ›_ *${usedPrefix + command} on*\n● _Deshabilitar ›_ *${usedPrefix + command} off*\n\n❒ *Estado actual ›* ${estadoActual}` 
-            }, { quoted: m });
-        }
-
-        if (!validStates.includes(stateArg)) {
-            return m.reply(`*❁* \`Estado no válido\` *❁*\n\nUsa *on / off*.\nEjemplo: *${usedPrefix + command} on*`);
-        }
-
-        const enabled = ['on', 'enable'].includes(stateArg);
-
-        if (db[from][featureKey] === enabled) {
-            return m.reply(`*✎* ${featureName} ya estaba *${enabled ? 'activado' : 'desactivado'}*.`);
-        }
-
-        db[from][featureKey] = enabled;
+        db[from][feature] = enabled;
         fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
 
-        return m.reply(`*✿︎* Has *${enabled ? 'activado' : 'desactivado'}* ${featureName} con éxito.`);
+        await conn.sendMessage(from, { 
+            text: `*✿︎* \`Ajuste Aplicado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ha sido **${enabled ? 'ACTIVADA' : 'DESACTIVADA'}**.\n\n> ¡Kazuma ahora está en modo ${enabled ? 'vigilante' : 'reposo'}!` 
+        }, { quoted: m });
     }
 };
 
