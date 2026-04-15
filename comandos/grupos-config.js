@@ -10,51 +10,63 @@ const configOnOff = {
     category: 'grupo',
     isAdmin: true,
     isGroup: true,
-    noPrefix: true,
+    noPrefix: true, // Tu sello distintivo
 
     run: async (conn, m, args, usedPrefix, commandName) => {
         const from = m.key.remoteJid;
         let feature, action;
 
-        // Lógica de detección: ¿Se usó el comando base o un alias?
+        // --- LÓGICA DE DETECCIÓN DE ARGUMENTOS ---
+        // Si el usuario usa el nombre base: #config antilink on
         if (commandName === 'config') {
             feature = args[0]?.toLowerCase();
             action = args[1]?.toLowerCase();
         } else {
-            // Si usó #detect on o #antilink off
+            // Si usa un alias: #antilink on / #detect off
             feature = commandName; 
             action = args[0]?.toLowerCase();
         }
 
         const validFeatures = ['detect', 'antilink'];
 
+        // 1. Validar que la función exista
         if (!validFeatures.includes(feature)) {
-            return m.reply(`*❁* \`Opción Inválida\` *❁*\n\nUsa: *${usedPrefix}${commandName} [detect / antilink] [on / off]*`);
+            return m.reply(`*❁* \`Opción Inválida\` *❁*\n\nFunciones disponibles:\n*✿︎* \`detect\`\n*✿︎* \`antilink\`\n\n> Ejemplo: *${usedPrefix}${commandName === 'config' ? 'config antilink' : feature} on*`);
         }
 
+        // 2. Validar que se haya pasado una acción (on/off)
         if (!action || !['on', 'off', 'enable', 'disable'].includes(action)) {
-            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Quieres activar o desactivar *${feature}*?\n\n> Ejemplo: *${usedPrefix}${feature} on*`);
+            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Quieres activar o desactivar *${feature}*?\n\n*✿︎ Opciones:* \`on / off\``);
         }
 
         const enabled = ['on', 'enable'].includes(action);
 
-        // Asegurar que la carpeta y el archivo existan
-        if (!fs.existsSync(path.resolve('./jsons'))) fs.mkdirSync(path.resolve('./jsons'));
-        let db = {};
-        if (fs.existsSync(databasePath)) {
-            try {
-                db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
-            } catch (e) { db = {}; }
-        }
-        
-        if (!db[from]) db[from] = {};
-        db[from][feature] = enabled;
-        
-        fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
+        // --- GESTIÓN DEL ARCHIVO JSON ---
+        try {
+            if (!fs.existsSync(path.resolve('./jsons'))) {
+                fs.mkdirSync(path.resolve('./jsons'), { recursive: true });
+            }
 
-        await conn.sendMessage(from, { 
-            text: `*✿︎* \`Ajuste Actualizado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ahora está: **${enabled ? 'ACTIVADA' : 'DESACTIVADA'}**.\n\n> Kazuma Mister Bot` 
-        }, { quoted: m });
+            let db = {};
+            if (fs.existsSync(databasePath)) {
+                const rawData = fs.readFileSync(databasePath, 'utf-8');
+                db = rawData ? JSON.parse(rawData) : {};
+            }
+            
+            if (!db[from]) db[from] = {};
+            db[from][feature] = enabled;
+            
+            fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
+
+            // --- RESPUESTA VISUAL ---
+            await conn.sendMessage(from, { 
+                text: `*✿︎* \`Ajuste Actualizado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ahora está: **${enabled ? 'ACTIVADA' : 'DESACTIVADA'}**.\n\n> Configuración guardada para este grupo.` 
+            }, { quoted: m });
+
+        } catch (err) {
+            console.error('Error guardando config:', err);
+            m.reply('*❁* `Error Interno` *❁*\n\nNo se pudo guardar la configuración en el archivo JSON.');
+        }
     }
 };
 
