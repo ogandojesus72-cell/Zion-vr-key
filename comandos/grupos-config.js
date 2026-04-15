@@ -9,7 +9,7 @@ const configOnOff = {
     alias: ['enable', 'disable', 'on', 'off', 'detect'],
     category: 'grupo',
     isOwner: false,
-    noPrefix: false, // Se puede usar con prefijo #on o #detect
+    noPrefix: true,
     isAdmin: true,
     isGroup: true,
 
