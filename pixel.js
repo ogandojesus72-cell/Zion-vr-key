@@ -1,11 +1,11 @@
-/* KURAYAMI TEAM - PIXEL HANDLER (DEBUG MODE) */
+/* KURAYAMI TEAM - PIXEL HANDLER (MASTER FIX) */
 
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 import { logger } from './config/print.js';
 
-// Usamos una ruta absoluta para que no haya pérdida entre procesos
+// Rutas absolutas para evitar errores entre procesos de PM2
 const databasePath = path.join(process.cwd(), 'jsons', 'preferencias.json');
 const sessionsPath = path.join(process.cwd(), 'sesiones_subbots');
 
@@ -35,28 +35,31 @@ export const pixelHandler = async (conn, m, config) => {
             : body.trim().split(/ +/).shift().toLowerCase();
 
         // --- LÓGICA DE BOT PRIMARIO ---
-        if (isGroup && commandName !== 'setprimary') {
-            const myJid = conn.user.id.split(':')[0].replace(/[^0-9]/g, '');
+        if (isGroup) {
+            // EXCEPCIÓN: Todos los bots deben escuchar los comandos de gestión
+            const comandosGestion = ['setprimary', 'delprimary'];
+            
+            if (!comandosGestion.includes(commandName)) {
+                const myJid = conn.user.id.split(':')[0].replace(/[^0-9]/g, '');
 
-            if (fs.existsSync(databasePath)) {
-                let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
-                
-                if (db[chat]) {
-                    const primaryNumber = db[chat].replace(/[^0-9]/g, '');
+                if (fs.existsSync(databasePath)) {
+                    let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
                     
-                    // Verificación de actividad
-                    const isSubActive = fs.existsSync(path.join(sessionsPath, primaryNumber));
-                    const isMainActive = true; 
+                    if (db[chat]) {
+                        const primaryNumber = db[chat].replace(/[^0-9]/g, '');
+                        
+                        // Verificar si el primario sigue existiendo físicamente
+                        const isSubActive = fs.existsSync(path.join(sessionsPath, primaryNumber));
+                        const isMainActive = true; 
 
-                    if (isSubActive || primaryNumber === myJid) {
-                        if (myJid !== primaryNumber) {
-                            // LOG PARA DEPURACIÓN: Descomenta la línea de abajo si quieres ver quién se calla en la consola
-                            // console.log(chalk.blue(`[SILENCIO] Bot ${myJid} se calla porque el primario es ${primaryNumber}`));
-                            return; 
+                        if (isSubActive || primaryNumber === myJid) {
+                            // Si hay un primario activo y no soy yo, ignoro el comando
+                            if (myJid !== primaryNumber) return; 
+                        } else {
+                            // Limpieza automática si el bot primario desapareció
+                            delete db[chat];
+                            fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
                         }
-                    } else {
-                        delete db[chat];
-                        fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
                     }
                 }
             }
