@@ -23,6 +23,13 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!body) return;
 
+        const allPrefixes = config.allPrefixes || ['#', '!', '.'];
+        const usedPrefix = allPrefixes.find(p => body.startsWith(p));
+
+        let commandName = usedPrefix 
+            ? body.slice(usedPrefix.length).trim().split(/ +/).shift().toLowerCase()
+            : body.trim().split(/ +/).shift().toLowerCase();
+
         // --- LÓGICA DE BOT PRIMARIO ---
         if (isGroup) {
             const databasePath = path.resolve('./jsons/preferencias.json');
@@ -34,16 +41,16 @@ export const pixelHandler = async (conn, m, config) => {
                 
                 if (db[chat]) {
                     const primaryNumber = db[chat];
-                    const isMainBot = primaryNumber === config.numeroPrincipal; 
-
-                    // Verificar si el bot primario asignado sigue activo
-                    const primaryExists = fs.existsSync(path.join(sessionsPath, primaryNumber)) || primaryNumber === myNumber;
+                    
+                    // Verificamos si el primario existe en las carpetas o es el principal
+                    const primaryExists = fs.existsSync(path.join(sessionsPath, primaryNumber)) || primaryNumber === config.numeroPrincipal;
 
                     if (primaryExists) {
-                        // Si yo no soy el primario, me quedo callado
-                        if (myNumber !== primaryNumber) return;
+                        // EXCEPCIÓN: Si yo no soy el primario, solo respondo si el comando es 'setprimary'
+                        // Esto permite que el admin pueda cambiar de bot si el actual no le gusta
+                        if (myNumber !== primaryNumber && commandName !== 'setprimary') return;
                     } else {
-                        // Si el primario no existe, liberamos el grupo
+                        // Si el primario ya no existe (carpeta borrada), limpiamos el JSON
                         delete db[chat];
                         fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
                     }
@@ -52,13 +59,6 @@ export const pixelHandler = async (conn, m, config) => {
         }
 
         if (!isGroup && !isOwner && body.toLowerCase() !== 'code') return;
-
-        const allPrefixes = config.allPrefixes || ['#', '!', '.'];
-        const usedPrefix = allPrefixes.find(p => body.startsWith(p));
-
-        let commandName = usedPrefix 
-            ? body.slice(usedPrefix.length).trim().split(/ +/).shift().toLowerCase()
-            : body.trim().split(/ +/).shift().toLowerCase();
 
         const args = body.trim().split(/ +/).slice(1);
         const text = args.join(' ');
