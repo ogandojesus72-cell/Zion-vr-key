@@ -15,12 +15,14 @@ const yotsubaUploadCommand = {
 
     run: async (conn, m, args, usedPrefix, commandName) => {
         // 1. Agarrar el mensaje target (quoted o el propio)
-        const target = m.quoted || m;
+        const target = m.quoted ? m.quoted : m;
         const msg = target.message || {};
 
-        // Desempaquetar solo para detectar tipo y mime
+        // Desempaquetar si viene en documentWithCaptionMessage
         const unwrapped = msg.documentWithCaptionMessage?.message || msg;
         const type = Object.keys(unwrapped)[0];
+
+        // 2. Sacar el mime
         const mediaData = unwrapped[type] || {};
         const mime = mediaData.mimetype || '';
 
@@ -35,9 +37,9 @@ const yotsubaUploadCommand = {
         try {
             await m.reply(`*✿︎* \`Subiendo Archivo\` *✿︎*\n\nKazuma está enviando el archivo a Yotsuba Cloud. Por favor, espera...\n\n> ⏳ Conectando con tu API privada...`);
 
-            // 2. Descargar pasando el target completo (no el desempaquetado)
+            // 3. Descargar con downloadMediaMessage de Baileys
             const media = await downloadMediaMessage(
-                target,
+                { message: unwrapped, key: target.key },
                 'buffer',
                 {},
                 { logger: console, reuploadRequest: conn.updateMediaMessage }
@@ -45,7 +47,7 @@ const yotsubaUploadCommand = {
 
             if (!media) return m.reply('*❁* `Error de Medios` *❁*\n\nNo se pudo descargar el archivo. Intenta de nuevo.');
 
-            // 3. Subir a tu servidor
+            // 4. Subir a tu servidor
             const formData = new FormData();
             formData.append('file', media, {
                 filename: `kazuma_${Date.now()}.${mime.split('/')[1] || 'bin'}`,
@@ -65,7 +67,7 @@ const yotsubaUploadCommand = {
                 return m.reply('*❁* `Error de API` *❁*\n\nTu servidor no devolvió un enlace válido.');
             }
 
-            // 4. Mensaje final
+            // 5. Mensaje final
             const successText =
                 `*» (❍ᴥ❍ʋ) \`YOTSUBA CLOUD\` «*\n` +
                 `> ꕥ Archivo convertido con éxito.\n\n` +
