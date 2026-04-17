@@ -4,13 +4,15 @@ const kickCommand = {
     name: 'kick',
     alias: ['ban', 'remove', 'eliminar', 'sacar'],
     category: 'admin',
-    isAdmin: true, 
+    admin: true, 
     botAdmin: true, 
-    isGroup: false,
+    isGroup: true,
     noPrefix: true,
 
-    run: async (conn, m, { participants, isGroup }) => {
-        if (!isGroup) return;
+    run: async (conn, m, args, usedPrefix, commandName, text) => {
+        // En tu handler, el séptimo argumento no es 'participants', así que lo obtenemos manualmente
+        const groupMetadata = await conn.groupMetadata(m.chat);
+        const participants = groupMetadata.participants;
 
         if (!m.mentionedJid[0] && !m.quoted) {
             return m.reply(`*${config.visuals.emoji2}* Etiqueta o responde al mensaje de la persona que quieres eliminar.`);
@@ -18,11 +20,10 @@ const kickCommand = {
 
         let victim = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted.sender;
         
-        const groupInfo = await conn.groupMetadata(m.chat);
-        const ownerGroup = groupInfo.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
+        const ownerGroup = groupMetadata.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
         const botId = conn.decodeJid(conn.user.id);
 
-        const participant = groupInfo.participants.find((p) => p.id === victim || p.lid === victim);
+        const participant = participants.find((p) => p.id === victim || p.lid === victim);
 
         if (!participant) {
             return m.reply(`*${config.visuals.emoji2}* @${victim.split('@')[0]} ya no está en el grupo.`, null, { mentions: [victim] });
