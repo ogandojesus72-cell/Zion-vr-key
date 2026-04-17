@@ -8,7 +8,7 @@ const kickCommand = {
     category: 'admin',
     isAdmin: true, 
     botAdmin: true, 
-    isGroup: true,
+    isGroup: false,
     noPrefix: true,
 
     run: async (conn, m, args, usedPrefix, commandName) => {
