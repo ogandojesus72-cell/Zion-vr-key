@@ -9,7 +9,9 @@ const kickCommand = {
     isGroup: true,
     noPrefix: true,
 
-    run: async (conn, m, { participants }) => {
+    run: async (conn, m, { participants, isGroup }) => {
+        if (!isGroup) return;
+
         if (!m.mentionedJid[0] && !m.quoted) {
             return m.reply(`*${config.visuals.emoji2}* Etiqueta o responde al mensaje de la persona que quieres eliminar.`);
         }
@@ -18,7 +20,6 @@ const kickCommand = {
         
         const groupInfo = await conn.groupMetadata(m.chat);
         const ownerGroup = groupInfo.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
-        const ownerBot = config.owner[0];
         const botId = conn.decodeJid(conn.user.id);
 
         const participant = groupInfo.participants.find((p) => p.id === victim || p.lid === victim);
@@ -36,15 +37,18 @@ const kickCommand = {
         }
 
         if (config.owner.includes(victim)) {
-            return m.reply(`*${config.visuals.emoji11}* Error de jerarquía: No tengo permitido eliminar a mi **Owner**.`);
+            return m.reply(`*${config.visuals.emoji11}* No tengo permitido eliminar a mi **Owner**.`);
         }
 
-        if (participant.admin) {
+        if (participant.admin || participant.isSuperAdmin) {
             return m.reply(`*${config.visuals.emoji6}* No puedo eliminar a @${victim.split('@')[0]} porque es un **Administrador**.`, null, { mentions: [victim] });
         }
 
         try {
-            await m.reply(`*${config.visuals.emoji7} \`SISTEMA DE MODERACIÓN\` ${config.visuals.emoji7}*\n\nEl usuario @${victim.split('@')[0]} será eliminado del grupo.`, null, { mentions: [victim] });
+            await conn.sendMessage(m.chat, { 
+                text: `*${config.visuals.emoji7} \`SISTEMA DE MODERACIÓN\` ${config.visuals.emoji7}*\n\nEl usuario @${victim.split('@')[0]} será eliminado del grupo.`,
+                mentions: [victim]
+            }, { quoted: m });
             
             await new Promise(resolve => setTimeout(resolve, 1000));
 
