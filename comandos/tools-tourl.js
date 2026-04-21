@@ -17,7 +17,7 @@ const tourlCommand = {
         const mime = (q.msg || q).mimetype || q.mediaType || '';
 
         if (!mime || !/image|sticker/.test(mime)) {
-            return m.reply(`*❁* \`Sin Multimedia\` *❁*\n\nNo detecto ninguna imagen o sticker.\n\n*✿︎* Responde a una imagen o sticker estático.\n*✿︎* O envía uno con el comando *${usedPrefix}tourl*`);
+            return m.reply(`*❁* \`Aviso de detección\` *❁*\n\nResponde a una imagen con el comando *${usedPrefix}tourl* para poder generar tu enlace.`);
         }
 
         try {
@@ -35,7 +35,7 @@ const tourlCommand = {
                 text: textoExito,
                 contextInfo: {
                     externalAdReply: {
-                        title: 'KAZUMA - TOURURL SERVICE',
+                        title: 'KAZUMA - TOURL',
                         body: `Archivo ${tipo} subido con éxito`,
                         thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg', 
                         sourceUrl: `https://upload.yotsuba.giize.com${link}`,
