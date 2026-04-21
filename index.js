@@ -74,6 +74,8 @@ async function startBot() {
         },
         browser: Browsers.ubuntu('Chrome'),
         markOnlineOnConnect: true,
+        // Agregamos esta opción para asegurar que Baileys no filtre mensajes propios
+        shouldIgnoreJid: jid => false 
     });
 
     await global.loadCommands();
@@ -115,14 +117,18 @@ async function startBot() {
         let m = chatUpdate.messages[0];
         if (!m.message) return;
 
-        // --- MODIFICACIÓN: AUTO-LECTURA DE COMANDOS ---
-        const bodyText = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "";
+        // --- LÓGICA DE AUTO-LECTURA RECARGADA ---
+        const bodyText = m.message.conversation || 
+                         m.message.extendedTextMessage?.text || 
+                         m.message.imageMessage?.caption || "";
+        
         const prefixes = config.allPrefixes || ['#', '!', '.'];
-        const isCmd = prefixes.some(p => bodyText.startsWith(p));
+        const isCmd = prefixes.some(p => bodyText.trim().startsWith(p));
 
-        // Solo ignorar si es del bot Y no es un comando (evita bucles infinitos)
+        // Solo bloqueamos si el mensaje es nuestro Y NO es un comando manual.
+        // Los mensajes editados o respuestas automáticas suelen no tener prefijo.
         if (m.key.fromMe && !isCmd) return;
-        // ----------------------------------------------
+        // ----------------------------------------
 
         m.chat = m.key.remoteJid;
         m.sender = m.key.participant || m.key.remoteJid;
