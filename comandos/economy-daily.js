@@ -43,7 +43,7 @@ const dailyCommand = {
             const reward = 30000 + (userData.daily.streak * 5000);
             const nextReward = 30000 + ((userData.daily.streak + 1) * 5000);
 
-            userData.coins += reward;
+            userData.wallet += reward;
             userData.daily.lastClaim = now;
 
             db[user] = userData;
