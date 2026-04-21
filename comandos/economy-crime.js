@@ -21,7 +21,7 @@ const crimeCommand = {
             let db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
 
             if (!db[user]) {
-                db[user] = { coins: 0, daily: { lastClaim: 0, streak: 0 }, crime: { lastUsed: 0 } };
+                db[user] = { wallet: 0, bank: 0, daily: { lastClaim: 0, streak: 0 }, crime: { lastUsed: 0 } };
             }
 
             const userData = db[user];
@@ -47,14 +47,14 @@ const crimeCommand = {
                 db[user] = userData;
                 fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-                const textoExito = `*${config.visuals.emoji3}* \`CRIMEN EXITOSO\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4}* ${randomCrime.text}\n\n*${config.visuals.emoji} Ganaste:* ¥${reward.toLocaleString()} Coins\n\n> Tu billetera ahora tiene: *¥${userData.coins.toLocaleString()}*`;
+                const textoExito = `*${config.visuals.emoji3}* \`CRIMEN EXITOSO\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4}* ${randomCrime.text}\n\n*${config.visuals.emoji} Ganaste:* ¥${reward.toLocaleString()} Coins\n\n> Tu cartera ahora tiene: *¥${userData.wallet.toLocaleString()}*`;
 
                 await conn.sendMessage(m.chat, {
                     text: textoExito,
                     contextInfo: {
                         externalAdReply: {
                             title: 'KAZUMA - CRIME CITY',
-                            body: `Recompensa obtenida con éxito`,
+                            body: `Dinero en cartera: ¥${userData.wallet.toLocaleString()}`,
                             thumbnailUrl: config.visuals.img1,
                             mediaType: 1,
                             showAdAttribution: false
@@ -62,15 +62,15 @@ const crimeCommand = {
                     }
                 }, { quoted: m });
             } else {
-                const randomFail = failFrases[Math.floor(Math.random() * failFrases.length)];
                 userData.crime = { lastUsed: now };
                 db[user] = userData;
                 fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-
+                const randomFail = failFrases[Math.floor(Math.random() * failFrases.length)];
                 m.reply(`*${config.visuals.emoji2}* \`OPERACIÓN FALLIDA\` *${config.visuals.emoji2}*\n\n${randomFail}\n\n> No lograste conseguir nada esta vez.`);
             }
 
         } catch (e) {
+            console.error(e);
             m.reply(`*${config.visuals.emoji2}* \`Error\` *${config.visuals.emoji2}*\nNo se pudo procesar el crimen.`);
         }
     }
