@@ -17,7 +17,7 @@ const menuCommand = {
             const botType = config.getBotType(conn);
             const totalCommands = global.commands.size;
 
-            const textoMenu = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 *${config.botName}* *(${botType})*.
+            const textoMenu = `𝐇𝐨𝐥𝐚! 𝐒𝐨𝐲 ${config.botName} *(${botType})*.
 Aǫᴜɪ ᴛɪᴇɴᴇs ᴍɪ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
 ╭┈ ↷
 │ ✐ *Owner* »
