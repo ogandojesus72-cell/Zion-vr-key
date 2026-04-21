@@ -6,7 +6,7 @@ const dbPath = path.resolve('./config/database/economy/economy.json');
 
 const withdrawCommand = {
     name: 'withdraw',
-    alias: ['ret', 'w', 'retirar', 'wd'],
+    alias: ['ret', 'retirar', 'wd'],
     category: 'economy',
     isOwner: false,
     noPrefix: true,
