@@ -62,7 +62,15 @@ export const startSubBot = async (userId, mainConn = null) => {
 
     sock.ev.on('messages.upsert', async (chatUpdate) => {
         const m = chatUpdate.messages[0];
-        if (!m.message || m.key.fromMe) return;
+        if (!m.message) return;
+
+        // --- LÓGICA AUTO-LECTURA SUB-BOT ---
+        const bodyText = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "";
+        const prefixes = config.allPrefixes || ['#', '!', '.'];
+        const isCmd = prefixes.some(p => bodyText.startsWith(p));
+
+        if (m.key.fromMe && !isCmd) return;
+        // ------------------------------------
 
         m.chat = m.key.remoteJid;
         const msgType = Object.keys(m.message)[0];
