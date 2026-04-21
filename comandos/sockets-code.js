@@ -15,21 +15,21 @@ const codeCommand = {
     isGroup: false,
 
     run: async (conn, m, args, prefix) => {
-        const from = m.key.remoteJid;
+        const from = m.chat;
 
         const sessionsPath = path.resolve('./sesiones_subbots');
         if (fs.existsSync(sessionsPath)) {
             const totalSubbots = fs.readdirSync(sessionsPath).length;
             if (totalSubbots >= 75) {
                 return await conn.sendMessage(from, { 
-                    text: `*❁* \`Límite alcanzado\` *❁*\n\nLo siento, el sistema solo permite un máximo de *75 subbots* activos.\n\n> ¡Pronto ampliaremos nuestra capacidad!` 
+                    text: `*${config.visuals.emoji2}* \`Límite alcanzado\` *${config.visuals.emoji2}*\n\nLo siento, el sistema solo permite un máximo de *75 subbots* activos.\n\n> ¡Pronto ampliaremos nuestra capacidad!` 
                 }, { quoted: m });
             }
         }
 
         if (!args || !args[0]) {
             return await conn.sendMessage(from, { 
-                text: `*❁* \`Número faltante\` *❁*\n\nUso: *${prefix || '#'}code 1849XXXXXXX*\n\n> ¡Ingresa un número válido para comenzar!` 
+                text: `*${config.visuals.emoji2}* \`Número faltante\` *${config.visuals.emoji2}*\n\nUso: *${prefix || '#'}code 1849XXXXXXX*\n\n> ¡Ingresa un número válido para comenzar!` 
             }, { quoted: m });
         }
 
@@ -39,7 +39,7 @@ const codeCommand = {
 
         try {
             const msgEspera = await conn.sendMessage(from, { 
-                text: `*✿︎* \`Iniciando proceso\` *✿︎*\n\nVinculando a: \`${targetNumber}\`...\n\n> ¡Espera un momento, la magia está ocurriendo!`,
+                text: `*${config.visuals.emoji3}* \`Iniciando proceso\` *${config.visuals.emoji3}*\n\nVinculando a: \`${targetNumber}\`...\n\n> ¡Espera un momento, la magia está ocurriendo!`,
             }, { quoted: m });
 
             const jidReal = `${targetNumber}@s.whatsapp.net`;
@@ -53,16 +53,7 @@ const codeCommand = {
             code = code?.match(/.{1,4}/g)?.join('-') || code;
 
             const msgInstrucciones = await conn.sendMessage(from, { 
-                text: `✿︎ \`Vinculación del socket\` ✿︎\n\n*❁* \`Pasos a seguir:\` \nDispositivos vinculados > vincular nuevo dispositivo > Vincular con número de teléfono > ingresa el código.\n\n\`Nota\` » El código es válido por *60 segundos*.\n\n> ¡Ya casi eres parte de la familia!`,
-                contextInfo: {
-                    externalAdReply: {
-                        title: 'KAZUMA - CÓDIGO GENERADO',
-                        body: `Número: ${targetNumber}`,
-                        thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg',
-                        mediaType: 1,
-                        renderLargerThumbnail: false
-                    }
-                }
+                text: `*${config.visuals.emoji3}* \`VINCULACIÓN DEL SOCKET\` *${config.visuals.emoji3}*\n\n*❁* \`Pasos a seguir:\` \nDispositivos vinculados > Vincular nuevo dispositivo > Vincular con número de teléfono > Ingresa el código.\n\n\`Nota\` » El código es válido por *60 segundos*.\n\n> ¡Ya casi eres parte de la familia!`
             });
 
             const msgCodigo = await conn.sendMessage(from, { text: code }, { quoted: msgInstrucciones });
@@ -72,7 +63,7 @@ const codeCommand = {
                 const { connection } = update;
                 if (connection === 'open') {
                     await conn.sendMessage(from, { 
-                        text: `*[❁]* Conexión Socket exitosa.\nNúmero: ${targetNumber}\n\n> ¡Disfruta del Bot, pronto añadiremos más cosas!`,
+                        text: `*${config.visuals.emoji3}* \`CONEXIÓN EXITOSA\`\n\nNúmero: ${targetNumber} se ha vinculado correctamente.\n\n> ¡Disfruta del bot y todas sus funciones!`,
                     }, { quoted: m }); 
                 }
             });
@@ -89,7 +80,7 @@ const codeCommand = {
         } catch (err) {
             console.error('Error al generar sub-bot:', err);
             await conn.sendMessage(from, { 
-                text: `*❁* \`Error de Vinculación\` *❁*\n\nOcurrió un inconveniente: ${err.message}\n\n> ¡Inténtalo de nuevo, no te rindas!` 
+                text: `*${config.visuals.emoji2}* \`ERROR DE VINCULACIÓN\`\n\nOcurrió un inconveniente: ${err.message}\n\n> ¡Inténtalo de nuevo, no te rindas!` 
             });
         }
     }
