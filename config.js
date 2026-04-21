@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 export const config = {
-    botName: 'Kazuma - Bot',
+    botName: 'Kazuma',
     owner: [
         '573508941325@s.whatsapp.net', 
         '125860308893859@lid'
