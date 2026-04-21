@@ -18,22 +18,27 @@ const baltopCommand = {
             let page = args[0] ? parseInt(args[0]) : 1;
             if (isNaN(page) || page < 1) page = 1;
 
-            const users = Object.keys(db).map(id => ({
-                id,
-                total: (db[id].wallet || 0) + (db[id].bank || 0),
-                wallet: db[id].wallet || 0,
-                bank: db[id].bank || 0
-            })).sort((a, b) => b.total - a.total);
+            const users = Object.keys(db)
+                .map(id => ({
+                    id,
+                    total: (Number(db[id].wallet) || 0) + (Number(db[id].bank) || 0),
+                    wallet: Number(db[id].wallet) || 0,
+                    bank: Number(db[id].bank) || 0
+                }))
+                .filter(user => user.total > 0) // <--- FILTRO: Solo usuarios con dinero
+                .sort((a, b) => b.total - a.total);
 
             const pageSize = 10;
             const start = (page - 1) * pageSize;
             const end = start + pageSize;
             const topUsers = users.slice(start, end);
 
-            if (topUsers.length === 0) return m.reply(`*${config.visuals.emoji2}* No hay más usuarios en esa página.`);
+            if (topUsers.length === 0) {
+                return m.reply(`*${config.visuals.emoji2}* No hay usuarios con capital para mostrar.`);
+            }
 
             let list = `*${config.visuals.emoji3}* \`TOP RIQUEZA - PÁGINA ${page}\` *${config.visuals.emoji3}*\n\n`;
-            
+
             topUsers.forEach((user, index) => {
                 list += `*${start + index + 1}.* @${user.id}\n  ᗒ *Total:* ¥${user.total.toLocaleString()}\n  ᗒ *Banco:* ¥${user.bank.toLocaleString()}\n\n`;
             });
