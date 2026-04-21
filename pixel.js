@@ -1,5 +1,3 @@
-/* KURAYAMI TEAM - PIXEL HANDLER (MASTER FIX) */
-
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
@@ -45,18 +43,24 @@ export const pixelHandler = async (conn, m, config) => {
             const comandosGestion = ['setprimary', 'delprimary'];
 
             if (!comandosGestion.includes(commandName)) {
-                const myJid = conn.user.id.split(':')[0].replace(/[^0-9]/g, '');
+                // Limpieza profunda del JID propio (evita problemas con sesiones multidispositivo :1)
+                const myJid = conn.user.id.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
 
                 if (fs.existsSync(databasePath)) {
                     let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
 
                     if (db[chat]) {
                         const primaryNumber = db[chat].replace(/[^0-9]/g, '');
+                        
+                        // Verificamos si el bot asignado sigue siendo un socket activo
                         const isSubActive = fs.existsSync(path.join(sessionsPath, primaryNumber));
 
+                        // Si el asignado existe como socket O es el bot principal actual
                         if (isSubActive || primaryNumber === myJid) {
+                            // SI YO NO SOY EL PRIMARIO, ME QUEDO CALLADO (RETURN)
                             if (myJid !== primaryNumber) return; 
                         } else {
+                            // Si el bot primario ya no existe (carpeta borrada), liberamos el grupo
                             delete db[chat];
                             fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
                         }
@@ -72,7 +76,7 @@ export const pixelHandler = async (conn, m, config) => {
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (!cmd) return;
-        
+
         // El bot responde si hay prefijo real O si el comando es noPrefix
         if (!foundPrefix && !cmd.noPrefix) return;
 
