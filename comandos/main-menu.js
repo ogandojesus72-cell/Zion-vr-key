@@ -77,7 +77,12 @@ Aǫᴜɪ ᴛɪᴇɴᴇs ᴍɪ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs
 > ❀ Protector de enlaces.
 
 *» (❍ᴥ❍ʋ) \`ADMINS\` «*
-> ꕥ Coman
+> ꕥ Comandos para admins del grupo.
+
+*✿︎ ${prefix}setprimary • ${prefix}solotu*
+> ❀ Establece a un socket como principal del grupo.
+*✿︎ ${prefix}delprimary*
+> ❀ Haz que todos los sockets vuelvan a responder en el grupo.
 
 *» (❍ᴥ❍ʋ) \`DESCARGAS\` «*
 > ꕥ Descarga cosas en diferentes redes.
