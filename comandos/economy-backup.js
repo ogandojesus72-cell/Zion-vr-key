@@ -6,7 +6,7 @@ const dbPath = path.resolve('./config/database/economy/daily.json');
 
 const economyTestCommand = {
     name: 'economy-test',
-    alias: ['ecotest', 'backup-eco'],
+    alias: ['test', 'backup-eco'],
     category: 'owner',
     isOwner: true,
     noPrefix: true,
