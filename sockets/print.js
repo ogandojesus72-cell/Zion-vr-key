@@ -2,11 +2,11 @@ import chalk from 'chalk';
 
 export const socketLogger = (m, conn) => {
     try {
-        if (!m || !m.message || m.key?.remoteJid === 'status@broadcast') return;
+        if (!m || !m.message || !m.key || m.key.remoteJid === 'status@broadcast') return;
 
         const from = m.key.remoteJid;
         const isGroup = from.endsWith('@g.us');
-        const name = m.pushName || 'Usuario';
+        const name = m.pushName || 'Sub-Bot User';
         const sender = isGroup ? (m.key.participant || from) : from;
         const senderNumber = sender ? sender.split('@')[0] : '000000';
 
@@ -30,18 +30,18 @@ export const socketLogger = (m, conn) => {
             body = `📦 ${type.replace('Message', '')}`;
         }
 
-        const groupInfo = isGroup ? chalk.yellow(` [G:${from.split('@')[0]}]`) : chalk.green(` [P]`);
+        const groupInfo = isGroup ? chalk.yellow(` (G:${from.split('@')[0]})`) : chalk.green(` (P)`);
         const time = new Date().toLocaleTimeString();
 
         console.log(
-            chalk.magenta(`[KAZUMA]`) + 
+            chalk.magenta(`[SUB-BOT]`) + 
             chalk.blue(`[${time}]`) + 
-            groupInfo +
             chalk.cyan(` ${name} (${senderNumber}): `) + 
-            chalk.white(body.length > 40 ? body.substring(0, 40) + '...' : body)
+            chalk.white(body.length > 50 ? body.substring(0, 50) + '...' : body) +
+            groupInfo
         );
 
     } catch (e) {
-        console.error(chalk.red(`[Print Error]: ${e.message}`));
+        console.error(chalk.red(`  [⚠️ Sub-Bot Logger Error]: ${e.message}`));
     }
 };
