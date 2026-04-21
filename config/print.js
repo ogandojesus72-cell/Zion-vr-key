@@ -8,7 +8,7 @@ export const logger = (m, conn) => {
         const from = m.key.remoteJid;
         const isGroup = from.endsWith('@g.us');
         const sender = isGroup ? (m.key.participant || from) : from;
-        const pushName = m.pushName || 'Usuario';
+        const pushName = m.key.fromMe ? 'PIXEL-CREW (YO)' : (m.pushName || 'Usuario');
         const number = sender ? sender.split('@')[0] : '000000';
 
         const messageType = Object.keys(m.message).find(t => t !== 'senderKeyDistributionMessage' && t !== 'messageContextInfo') || '';
@@ -35,7 +35,7 @@ export const logger = (m, conn) => {
 
         const chatLabel = isGroup ? chalk.black.bgMagenta(' GRUPO ') : chalk.black.bgCyan(' PRIVADO ');
         const timeLabel = chalk.gray(`[${time}]`);
-        const userLabel = chalk.yellow(`${pushName} (${number})`);
+        const userLabel = m.key.fromMe ? chalk.greenBright(`${pushName}`) : chalk.yellow(`${pushName} (${number})`);
         const typeLabel = chalk.blueBright(`[${messageType.replace('Message', '').toUpperCase()}]`);
 
         console.log(`${timeLabel} ${chatLabel} ${userLabel} ${typeLabel}: ${chalk.white(content.substring(0, 70))}${content.length > 70 ? '...' : ''}`);
