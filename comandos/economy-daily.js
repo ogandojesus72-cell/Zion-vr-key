@@ -37,7 +37,7 @@ const dailyCommand = {
                 const hours = Math.floor(remaining / (1000 * 60 * 60));
                 const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                 
-                return m.reply(`*${config.visuals.emoji2}* \`Espera un poco\` *${config.visuals.emoji2}*\n\nYa has reclamado tu recompensa hoy.\n\n*${config.visuals.emoji4] Vuelve en:* ${hours}h ${minutes}m`);
+                return m.reply(`*${config.visuals.emoji2}* \`Espera un poco\` *${config.visuals.emoji2}*\n\nYa has reclamado tu recompensa hoy.\n\n*${config.visuals.emoji} Vuelve en:* ${hours}h ${minutes}m`);
             }
 
             if (timePassed < cooldown * 2) {
@@ -55,7 +55,7 @@ const dailyCommand = {
             db[user] = userData;
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-            const textoDaily = `*${config.visuals.emoji3}* \`RECOMPENSA DIARIA\` *${config.visuals.emoji3}*\n\n¡Has reclamado tu recompensa de hoy!\n*${config.visuals.emoji2} Ganaste:* ¥${reward.toLocaleString()} Coins\n*${config.visuals.emoji4} Racha:* Día ${userData.streak}\n\n> Sigue así, mañana ganarás: *¥${nextReward.toLocaleString()}*`;
+            const textoDaily = `*${config.visuals.emoji3}* \`RECOMPENSA DIARIA\` *${config.visuals.emoji3}*\n\n¡Has reclamado tu recompensa de hoy!\n*${config.visuals.emoji4} Ganaste:* ¥${reward.toLocaleString()} Coins\n*${config.visuals.emoji} Racha:* Día ${userData.streak}\n\n> Sigue así, mañana ganarás: *¥${nextReward.toLocaleString()}*`;
 
             await conn.sendMessage(m.chat, {
                 text: textoDaily,
