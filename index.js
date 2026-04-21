@@ -116,18 +116,22 @@ async function startBot() {
         let m = chatUpdate.messages[0];
         if (!m.message) return;
 
-        // FILTRO DE AUTO-LECTURA (Solo comandos con prefijo pasan el fromMe)
-        const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "";
+        const body = (m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "").trim();
         const prefixes = config.allPrefixes || ['#', '!', '.'];
-        const isCmd = prefixes.some(p => body.trim().startsWith(p));
+        
+        // Verificación inteligente de comandos
+        const hasPrefix = prefixes.some(p => body.startsWith(p));
+        const isNoPrefixCmd = Array.from(global.commands.values()).some(cmd => 
+            cmd.noPrefix && (body.toLowerCase() === cmd.name.toLowerCase() || (cmd.alias && cmd.alias.includes(body.toLowerCase())))
+        );
 
-        if (m.key.fromMe && !isCmd) return;
+        // Si es del bot, solo dejamos pasar si tiene prefijo o es un comando noPrefix manual
+        if (m.key.fromMe && !hasPrefix && !isNoPrefixCmd) return;
 
         m.chat = m.key.remoteJid;
         m.sender = m.key.participant || m.key.remoteJid;
 
         global.lastMessageMap.set(m.sender, Date.now());
-
         m.reply = (text) => conn.sendMessage(m.chat, { text }, { quoted: m });
 
         m.download = () => {
@@ -144,9 +148,7 @@ async function startBot() {
             const type = Object.keys(contextInfo.quotedMessage)[0];
             const q = contextInfo.quotedMessage[type];
             m.quoted = {
-                type,
-                msg: q,
-                mimetype: q?.mimetype || '',
+                type, msg: q, mimetype: q?.mimetype || '',
                 key: {
                     remoteJid: m.chat,
                     fromMe: contextInfo.participant === conn.user.id,
@@ -154,10 +156,7 @@ async function startBot() {
                     participant: contextInfo.participant
                 },
                 message: contextInfo.quotedMessage,
-                download: () => {
-                    const mediaType = type.replace('Message', '');
-                    return downloadContentFromMessage(q, mediaType);
-                }
+                download: () => downloadContentFromMessage(q, type.replace('Message', ''))
             };
         } else {
             m.quoted = null;
