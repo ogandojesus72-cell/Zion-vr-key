@@ -13,17 +13,21 @@ const payCommand = {
     run: async (conn, m, args) => {
         try {
             const sender = m.sender.split('@')[0];
-            const targetJid = m.quoted ? m.quoted.sender : m.mentionedJid?.[0];
-            const amount = parseInt(args[0]);
+            
+            let targetJid = m.quoted ? m.quoted.sender : m.mentionedJid?.[0];
+
+            let amount = args.find(a => !isNaN(a) && a.length > 0);
+            amount = parseInt(amount);
 
             if (!targetJid || isNaN(amount) || amount <= 0) {
-                return m.reply(`*${config.visuals.emoji2}* \`Uso Incorrecto\`\n\nUso: #pay 5000 (mención/responder)\n\n> ¡Asegúrate de indicar una cifra válida!`);
+                return m.reply(`*${config.visuals.emoji2}* \`Uso Incorrecto\`\n\nUso: #pay 5000 (mención o responder)\n\n> ¡Asegúrate de indicar una cifra válida!`);
             }
 
             const receiver = targetJid.split('@')[0];
             if (sender === receiver) return m.reply(`*${config.visuals.emoji2}* No puedes enviarte dinero a ti mismo.`);
 
             let db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+            
             if (!db[sender] || (db[sender].bank || 0) < amount) {
                 return m.reply(`*${config.visuals.emoji2}* \`Fondos Insuficientes\`\n\nNo tienes esa cantidad en tu banco.\n\n> ¡Deposita primero para poder transferir!`);
             }
@@ -31,7 +35,7 @@ const payCommand = {
             if (!db[receiver]) db[receiver] = { wallet: 0, bank: 0, daily: { lastClaim: 0, streak: 0 }, crime: { lastUsed: 0 } };
 
             db[sender].bank -= amount;
-            db[receiver].bank += (db[receiver].bank || 0) + amount;
+            db[receiver].bank = (db[receiver].bank || 0) + amount;
 
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
