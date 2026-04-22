@@ -52,8 +52,11 @@ export const startSubBot = async (userId, mainConn = null) => {
             if (code !== DisconnectReason.loggedOut) {
                 setTimeout(() => startSubBot(jid, mainConn), 5000);
             } else {
+                console.log(chalk.red(`[SUB-BOT] 🗑️ Sesión cerrada por el usuario: ${userNumber}. Eliminando archivos...`));
                 global.subBots.delete(jid);
-                if (fs.existsSync(userSessionPath)) fs.rmSync(userSessionPath, { recursive: true, force: true });
+                if (fs.existsSync(userSessionPath)) {
+                    fs.rmSync(userSessionPath, { recursive: true, force: true });
+                }
             }
         } else if (connection === 'open') {
             console.log(chalk.green(`[SUB-BOT] ✅ Conectado: ${userNumber}`));
