@@ -6,6 +6,9 @@ const gachaPath = path.resolve('./config/database/gacha/gacha_list.json');
 const ecoPath = path.resolve('./config/database/economy/economy.json');
 const cooldowns = new Map();
 
+// ESTA ES LA MEMORIA: Guarda qué ID salió en cada chat
+export const lastRoll = new Map();
+
 const rwCommand = {
     name: 'rw',
     alias: ['roll', 'waifu'],
@@ -15,12 +18,12 @@ const rwCommand = {
     run: async (conn, m) => {
         try {
             const user = m.sender.split('@')[0].split(':')[0];
+            const chat = m.chat; // ID del grupo o chat
             const ahora = Date.now();
-            const tiempoEspera = 10 * 60 * 1000;
 
             if (cooldowns.has(user)) {
-                const restante = cooldowns.get(user) + tiempoEspera - ahora;
-                if (restante > 0) return m.reply(`*${config.visuals.emoji2}* ¡Cálmate! Espera ${Math.ceil(restante / 60000)} min.`);
+                const restante = cooldowns.get(user) + 10 * 60 * 1000 - ahora;
+                if (restante > 0) return m.reply(`*${config.visuals.emoji2}* Espera ${Math.ceil(restante / 60000)} min.`);
             }
 
             let gachaDB = JSON.parse(fs.readFileSync(gachaPath, 'utf-8'));
@@ -29,18 +32,20 @@ const rwCommand = {
             const saldo = ecoDB[user]?.wallet || 0;
             let keys = Object.keys(gachaDB);
 
-            if (saldo < 45000) {
-                if (Math.random() > 0.05) { 
-                    keys = keys.filter(id => gachaDB[id].value < 40000);
-                }
+            if (saldo < 45000 && Math.random() > 0.05) {
+                keys = keys.filter(id => gachaDB[id].value < 40000);
             }
 
             const randomId = keys[Math.floor(Math.random() * keys.length)];
             const pj = gachaDB[randomId];
+            
+            // --- LA JUGADA ---
+            // Guardamos el ID que salió en este chat específico
+            lastRoll.set(chat, randomId);
             cooldowns.set(user, ahora);
 
             let caption = `*» (❍ᴥ❍ʋ) \`GACHA ROLL\` «*\n\n`;
-            caption += `*ID »* ${randomId}\n`; // ID visible para el claim
+            caption += `*ID »* ${randomId}\n`;
             caption += `*Nombre:* ${pj.name}\n`;
             caption += `*Fuente:* ${pj.source}\n`;
             caption += `*Valor:* ¥${pj.value.toLocaleString()}\n`;
@@ -54,7 +59,7 @@ const rwCommand = {
             }, { quoted: m });
 
         } catch (e) {
-            m.reply(`*${config.visuals.emoji2}* Error en el sistema Gacha.`);
+            m.reply(`*${config.visuals.emoji2}* Error en el sistema.`);
         }
     }
 };
