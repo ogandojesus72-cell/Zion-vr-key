@@ -41,7 +41,7 @@ const slutCommand = {
                 await m.reply(`*${config.visuals.emoji3}* \`NOCHE DE ÉXITO\`\n\n${frase}\n*Ganaste:* ¥${amount.toLocaleString()}`);
             }
 
-            db[user].slut.lastUsed = now; // Guardamos el tiempo en el JSON
+            db[user].slut.lastUsed = now; 
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf-8');
 
         } catch (e) {
