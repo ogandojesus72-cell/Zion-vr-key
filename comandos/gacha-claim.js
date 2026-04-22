@@ -16,9 +16,16 @@ const claimCommand = {
         try {
             const user = m.sender.split('@')[0].split(':')[0];
             const ahora = Date.now();
-            
-            if (claimCooldowns.has(user) && (ahora - claimCooldowns.get(user) < 9 * 60 * 1000)) {
-                return m.reply(`*${config.visuals.emoji2}* Debes esperar para reclamar otro personaje.`);
+            const tiempoEspera = 9 * 60 * 1000;
+
+            if (claimCooldowns.has(user)) {
+                const transcurrido = ahora - claimCooldowns.get(user);
+                if (transcurrido < tiempoEspera) {
+                    const faltante = tiempoEspera - transcurrido;
+                    const minutos = Math.floor(faltante / 60000);
+                    const segundos = Math.floor((faltante % 60000) / 1000);
+                    return m.reply(`*${config.visuals.emoji2}* ¡Espera! Debes esperar **${minutos}m ${segundos}s** para reclamar otro personaje.`);
+                }
             }
 
             let gachaDB = JSON.parse(fs.readFileSync(gachaPath, 'utf-8'));
@@ -37,7 +44,7 @@ const claimCommand = {
             if (!pjId || !gachaDB[pjId]) {
                 return m.reply(`*${config.visuals.emoji2}* Cita el mensaje del personaje que deseas reclamar.`);
             }
-            
+
             const pj = gachaDB[pjId];
             if (pj.status !== 'libre') return m.reply(`*${config.visuals.emoji2}* ¡Este personaje ya tiene dueño!`);
 
@@ -54,11 +61,11 @@ const claimCommand = {
 
             fs.writeFileSync(gachaPath, JSON.stringify(gachaDB, null, 2));
             fs.writeFileSync(ecoPath, JSON.stringify(ecoDB, null, 2));
-            
+
             if (m.quoted && global.db.data.chats[m.chat].rolls) {
                 delete global.db.data.chats[m.chat].rolls[m.quoted.id];
             }
-            
+
             claimCooldowns.set(user, ahora);
             m.reply(`*${config.visuals.emoji3}* ¡Felicidades! Has domado a *${pj.name}*.`);
 
