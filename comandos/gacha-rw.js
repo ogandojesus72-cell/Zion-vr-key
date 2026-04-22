@@ -36,8 +36,8 @@ const rwCommand = {
             const pj = gachaDB[randomId];
 
             let caption = `*» (❍ᴥ❍ʋ) \`GACHA ROLL\` «*\n\n`;
-            caption += `*ID »* ${randomId}\n`;
             caption += `*Nombre:* ${pj.name}\n`;
+            caption += `*ID »* ${randomId}\n`;
             caption += `*Fuente:* ${pj.source}\n`;
             caption += `*Valor:* ¥${pj.value.toLocaleString()}\n`;
             caption += `*Estado:* ${pj.status === 'libre' ? 'Libre' : 'Domado'}\n`;
