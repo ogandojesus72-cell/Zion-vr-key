@@ -17,7 +17,6 @@ const claimCommand = {
             const user = m.sender.split('@')[0].split(':')[0];
             const ahora = Date.now();
             
-            // Cooldown de 9 min
             if (claimCooldowns.has(user) && (ahora - claimCooldowns.get(user) < 9 * 60 * 1000)) {
                 return m.reply(`*${config.visuals.emoji2}* Espera para reclamar de nuevo.`);
             }
@@ -26,27 +25,36 @@ const claimCommand = {
             let ecoDB = JSON.parse(fs.readFileSync(ecoPath, 'utf-8'));
             let pjId = null;
 
-            // 1. Prioridad: ID manual (#claim 16)
+            // 1. Prioridad: ID manual (#claim 11)
             if (args[0] && !isNaN(args[0])) {
                 pjId = args[0];
             } 
-            // 2. Por respuesta (buscando en el pie de foto de la imagen)
+            // 2. Rastreo profundo en la respuesta
             else if (m.quoted) {
-                // Intentamos capturar el texto de donde sea que venga (mensaje normal o imagen)
-                const quotedMsg = m.quoted.message || m.quoted;
-                const caption = m.quoted.text || m.quoted.caption || quotedMsg?.imageMessage?.caption || quotedMsg?.extendedTextMessage?.text || '';
+                // Buscamos en todas las posibles ubicaciones del texto en un mensaje citado
+                const q = m.quoted;
+                const textoCita = q.text || q.caption || q.message?.imageMessage?.caption || q.message?.extendedTextMessage?.text || q.message?.videoMessage?.caption || '';
                 
-                const match = caption.match(/ID\s*»\s*(\d+)/i);
-                if (match) pjId = match[1];
+                // Buscamos el ID ignorando negritas, espacios y saltos de línea
+                const match = textoCita.match(/ID\s*»\s*(\d+)/i);
+                if (match && match[1]) {
+                    pjId = match[1];
+                }
             }
 
-            if (!pjId || !gachaDB[pjId]) return m.reply(`*${config.visuals.emoji2}* No detecté el ID. Responde al mensaje o usa #claim (ID).`);
+            if (!pjId || !gachaDB[pjId]) {
+                return m.reply(`*${config.visuals.emoji2}* No detecté el ID. Responde al mensaje o usa #claim (ID).`);
+            }
             
             const pj = gachaDB[pjId];
-            if (pj.status !== 'libre') return m.reply(`*${config.visuals.emoji2}* Ya tiene dueño.`);
+            if (pj.status !== 'libre') return m.reply(`*${config.visuals.emoji2}* Este ya tiene dueño.`);
 
             if (!ecoDB[user]) ecoDB[user] = { wallet: 0, bank: 0 };
-            if (ecoDB[user].wallet < pj.value) return m.reply(`*${config.visuals.emoji2}* No tienes ¥${pj.value.toLocaleString()}.`);
+            const saldo = ecoDB[user].wallet || 0;
+
+            if (saldo < pj.value) {
+                return m.reply(`*${config.visuals.emoji2}* No tienes suficiente dinero. Cuesta ¥${pj.value.toLocaleString()}`);
+            }
 
             // Transacción
             ecoDB[user].wallet -= pj.value;
@@ -57,12 +65,11 @@ const claimCommand = {
             fs.writeFileSync(ecoPath, JSON.stringify(ecoDB, null, 2));
             claimCooldowns.set(user, ahora);
 
-            m.reply(`*${config.visuals.emoji3}* ¡Adquiriste a *${pj.name}*!`);
+            m.reply(`*${config.visuals.emoji3}* ¡Adquiriste a *${pj.name}*! Pagaste ¥${pj.value.toLocaleString()}.`);
 
         } catch (e) {
             console.error("ERROR EN CLAIM:", e);
-            // Si hay un error, el bot responderá esto en lugar de quedarse callado
-            m.reply(`*${config.visuals.emoji2}* Fallo interno. Revisa que los archivos JSON existan.`);
+            m.reply(`*${config.visuals.emoji2}* Fallo interno al procesar el reclamo.`);
         }
     }
 };
