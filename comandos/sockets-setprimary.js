@@ -47,15 +47,15 @@ const setPrimary = {
             }, { quoted: m });
         }
 
-        const targetNumber = targetJid.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
-        const myNumber = conn.user.id.split(':')[0].split('@')[0].replace(/[^0-9]/g, '');
+        const targetNumber = targetJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+        const myNumber = conn.user.id.split(':')[0].split('@')[0].replace(/\D/g, '');
 
-        const isMain = (targetNumber === myNumber) && fs.existsSync(mainSessionPath);
+        const isMain = fs.existsSync(mainSessionPath);
         const isSub = fs.existsSync(path.join(sessionsPath, targetNumber));
 
-        if (!isMain && !isSub) {
-            return await conn.sendMessage(from, { 
-                text: `*${config.visuals.emoji2}* \`Bot no encontrado\`\n\nEl número \`${targetNumber}\` no es un Bot con sesión activa.\n\n> ¡Solo puedes nombrar a bots vinculados!` 
+        if (targetNumber !== myNumber && !isSub) {
+             return await conn.sendMessage(from, { 
+                text: `*${config.visuals.emoji2}* \`Bot no encontrado\`\n\nEl número \`${targetNumber}\` no es un Bot con sesión activa.` 
             }, { quoted: m });
         }
 
