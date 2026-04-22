@@ -47,7 +47,7 @@ export const startSubBot = async (userId, mainConn = null) => {
 
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
-        
+
         if (connection === 'close') {
             const code = lastDisconnect?.error?.output?.statusCode;
             const shouldReconnect = code !== DisconnectReason.loggedOut;
@@ -68,11 +68,9 @@ export const startSubBot = async (userId, mainConn = null) => {
     sock.ev.on('messages.upsert', async (chatUpdate) => {
         let m = chatUpdate.messages[0];
         if (!m || !m.message) return;
-        
+
         m.chat = m.key.remoteJid;
         m.sender = m.key.participant || m.key.remoteJid;
-        
-        if (m.key.fromMe) return;
 
         m.reply = (text) => sock.sendMessage(m.chat, { text }, { quoted: m });
 
