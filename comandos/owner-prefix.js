@@ -14,22 +14,27 @@ const prefixCommand = {
 
     run: async (conn, m, args) => {
         try {
+            if (fs.existsSync(prefixPath)) {
+                const current = JSON.parse(fs.readFileSync(prefixPath, 'utf-8'));
+                if (current.selected) {
+                    return m.reply(`*${config.visuals.emoji2}* \`ACCIÓN DENEGADA\`\n\nYa hay un prefijo establecido: \`${current.selected}\`\n\n> Usa el comando *#resetprefix* para volver a la configuración de fábrica.`);
+                }
+            }
+
             if (!fs.existsSync(jsonDir)) fs.mkdirSync(jsonDir, { recursive: true });
 
             const newPrefix = args[0];
             const availablePrefixes = config.allPrefixes || ['#', '!', '.'];
 
             if (!newPrefix || !availablePrefixes.includes(newPrefix)) {
-                return m.reply(`*${config.visuals.emoji2}* \`Prefijo Inválido\`\n\nDebes elegir uno de los permitidos: \`${availablePrefixes.join(' ')}\`\n\n> Ejemplo: #setprefix !`);
+                return m.reply(`*${config.visuals.emoji2}* \`Prefijo Inválido\`\n\nElige uno permitido: \`${availablePrefixes.join(' ')}\``);
             }
 
-            const data = { selected: newPrefix };
-            fs.writeFileSync(prefixPath, JSON.stringify(data, null, 2));
-
-            await m.reply(`*${config.visuals.emoji3}* \`PREFIJO ACTUALIZADO\`\n\nAhora el bot solo responderá al prefijo: \`${newPrefix}\` (y comandos sin prefijo).`);
+            fs.writeFileSync(prefixPath, JSON.stringify({ selected: newPrefix }, null, 2));
+            await m.reply(`*${config.visuals.emoji3}* \`PREFIJO ESTABLECIDO\`\n\nAhora solo responderé a: \`${newPrefix}\``);
 
         } catch (e) {
-            m.reply(`*${config.visuals.emoji2}* Error al establecer el prefijo.`);
+            m.reply(`*${config.visuals.emoji2}* Error al configurar.`);
         }
     }
 };
