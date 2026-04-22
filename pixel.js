@@ -14,7 +14,7 @@ export const pixelHandler = async (conn, m, config) => {
 
         const sender = m.sender || m.key.participant || m.key.remoteJid;
         const misIdentidades = config.owner || [];
-        const isOwner = misIdentidades.includes(sender);
+        const isOwner = misIdentidades.includes(sender) || m.key.fromMe;
         const isGroup = chat.endsWith('@g.us');
 
         const type = Object.keys(m.message)[0];
