@@ -1,9 +1,3 @@
-/* KURAYAMI TEAM
-
-- LID RESOLVER ENGINE 
-   Desarrollado para Kazuma Bot
-*/
-
 const clusterCache = new Map();
 const identityMap = new Map();
 const TTL_METADATA = 10000; // 10 segundos
@@ -23,9 +17,6 @@ export function formatJid(id) {
     return cleanId ? `${cleanId}@s.whatsapp.net` : null;
 }
 
-/**
- * Función Maestra: Traduce identificadores LID a JID Reales
- */
 export async function syncLid(client, m, chatId) {
     const targetId = m.sender || m.key?.participant || m.key?.remoteJid;
     const input = targetId?.toString().trim();
