@@ -19,7 +19,7 @@ const tradeCommand = {
                 if (!m.quoted) return m.reply(`*${config.visuals.emoji2}* Responde al mensaje de la propuesta para aceptar.`);
                 
                 const proposal = trades.get(m.quoted.id);
-                if (!proposal) return m.reply(`*${config.visuals.emoji2}* Esta propuesta ya no existe o ya caducó.`);
+                if (!proposal) return m.reply(`*${config.visuals.emoji2}* Esta propuesta ya no existe, ha caducado o fue rechazada.`);
                 if (m.sender !== proposal.toJid) return m.reply(`*${config.visuals.emoji2}* Solo la persona mencionada puede aceptar este intercambio.`);
 
                 let gachaDB = JSON.parse(fs.readFileSync(gachaPath, 'utf-8'));
@@ -29,14 +29,13 @@ const tradeCommand = {
                 const pj1 = proposal.myPjId;
                 const pj2 = proposal.targetPjId;
 
-                if (gachaDB[pj1].owner !== user1 || gachaDB[pj2].owner !== user2) {
+                if (!gachaDB[pj1] || !gachaDB[pj2] || gachaDB[pj1].owner !== user1 || gachaDB[pj2].owner !== user2) {
                     trades.delete(m.quoted.id);
-                    return m.reply(`*${config.visuals.emoji2}* El intercambio falló porque uno de los personajes ya no pertenece al dueño original.`);
+                    return m.reply(`*${config.visuals.emoji2}* El intercambio falló: uno de los personajes ya no está disponible.`);
                 }
 
                 gachaDB[pj1].owner = user2;
                 gachaDB[pj2].owner = user1;
-
                 gachaDB[pj1].status = 'domado';
                 gachaDB[pj2].status = 'domado';
 
@@ -63,11 +62,21 @@ const tradeCommand = {
             if (gachaDB[hisId].owner !== target) return m.reply(`*${config.visuals.emoji2}* El personaje *${gachaDB[hisId].name}* no es de esa persona.`);
 
             const sent = await conn.sendMessage(m.chat, { 
-                text: `*${config.visuals.emoji3} \`PROPUESTA DE INTERCAMBIO\` ${config.visuals.emoji3}*\n\n@${user} quiere cambiar su *${gachaDB[myId].name}* por tu *${gachaDB[hisId].name}*.\n\n> Responde a este mensaje con: *#trade accept*`,
+                text: `*${config.visuals.emoji3} \`PROPUESTA DE INTERCAMBIO\` ${config.visuals.emoji3}*\n\n@${user} quiere cambiar su *${gachaDB[myId].name}* por tu *${gachaDB[hisId].name}*.\n\n> Tienes *2 segundos* para responder con: *#trade accept*`,
                 mentions: [m.sender, targetJid]
             }, { quoted: m });
 
-            trades.set(sent.key.id, { from: user, toJid: targetJid, myPjId: myId, targetPjId: hisId });
+            const proposalId = sent.key.id;
+            trades.set(proposalId, { from: user, toJid: targetJid, myPjId: myId, targetPjId: hisId });
+
+            setTimeout(async () => {
+                if (trades.has(proposalId)) {
+                    trades.delete(proposalId);
+                    await conn.sendMessage(m.chat, { 
+                        text: `*${config.visuals.emoji2}* El tiempo para el intercambio ha expirado. La propuesta ha sido cancelada.` 
+                    }, { quoted: sent });
+                }
+            }, 2000);
 
         } catch (e) {
             console.error(e);
