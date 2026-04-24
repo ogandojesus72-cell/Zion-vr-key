@@ -26,6 +26,7 @@ import { loadAllSubBots } from './sockets/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const databasePath = path.resolve('./jsons/grupos.json');
 
 const rl = createInterface({ input: process.stdin, output: process.stdout });
 const question = (text) => new Promise((resolve) => rl.question(text, resolve));
@@ -119,6 +120,37 @@ async function startBot() {
         } else if (connection === 'open') {
             console.log(chalk.greenBright.bold('\n  [✨] ¡KAZUMA CONECTADO!'));
             await loadAllSubBots(conn);
+        }
+    });
+
+    conn.ev.on('group-participants.update', async (update) => {
+        const { id, participants, action } = update;
+        const db = fs.existsSync(databasePath) ? JSON.parse(fs.readFileSync(databasePath, 'utf-8')) : {};
+        if (db[id] && db[id].welcome === false) return;
+
+        for (let user of participants) {
+            let txt = '';
+            if (action === 'add') {
+                txt = `*${config.visuals.emoji3} \`WELCOME USER\` ${config.visuals.emoji3}*\n`;
+                txt += `› @${user.split('@')[0]}\n\n`;
+                txt += `» ¡Un nuevo alma se ha unido a nuestra travesía! Esperamos que tu estancia en este sector sea legendaria y llena de gloria.\n\n`;
+                txt += `> ${config.visuals.emoji} Usa el comando #help para ver mi lista de comandos.\n`;
+                txt += `> *${config.visuals.emoji4}* kazuma.giize.com`;
+            } else if (action === 'remove') {
+                txt = `*${config.visuals.emoji2} \`BYE USER\` ${config.visuals.emoji2}*\n`;
+                txt += `› @${user.split('@')[0]}\n\n`;
+                txt += `» Un miembro ha abandonado la base. Su rastro se desvanece en la red, pero su paso por aquí ha quedado registrado.\n\n`;
+                txt += `> ${config.visuals.emoji} ¡Esperamos no verte en el lado oscuro!\n`;
+                txt += `> *${config.visuals.emoji4}* kazuma.giize.com`;
+            }
+
+            if (txt) {
+                await conn.sendMessage(id, {
+                    image: { url: config.img1 },
+                    caption: txt,
+                    mentions: [user]
+                });
+            }
         }
     });
 
