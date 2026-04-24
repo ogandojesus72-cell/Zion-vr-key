@@ -5,13 +5,19 @@ const kickCommand = {
     alias: ['sacar', 'ban', 'eliminar'],
     category: 'admins',
     isAdmin: true,
-    isBotAdmin: true,
     noPrefix: true,
 
     run: async (conn, m) => {
         try {
-            let targetJid;
+            const groupMetadata = await conn.groupMetadata(m.chat);
+            const botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+            const isBotAdmin = groupMetadata.participants.find(p => p.id === botNumber)?.admin;
 
+            if (!isBotAdmin) {
+                return m.reply(`*${config.visuals.emoji2}* El bot no posee rango de Administrador. No tengo poder para eliminar miembros del grupo.\n\n> ¡Solicita el rango si deseas automatizar esta función!`);
+            }
+
+            let targetJid;
             if (m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]) {
                 targetJid = m.message.extendedTextMessage.contextInfo.mentionedJid[0];
             } else if (m.quoted) {
@@ -23,24 +29,22 @@ const kickCommand = {
             }
 
             const userToKick = targetJid.split('@')[0].split(':')[0] + '@s.whatsapp.net';
-            const botNumber = conn.user.id.split(':')[0] + '@s.whatsapp.net';
             const ownerNumber = config.owner[0][0] + '@s.whatsapp.net';
-            
-            const groupMetadata = await conn.groupMetadata(m.chat);
+
             const participants = groupMetadata.participants;
             const targetData = participants.find(p => p.id === userToKick);
             const isTargetAdmin = targetData?.admin || targetData?.isSuperAdmin;
 
             if (userToKick === m.sender) {
-                return m.reply(`*${config.visuals.emoji2} \`AUTO-PURGA DENEGADA\` ${config.visuals.emoji2}*\n\nNo puedes eliminarte a ti mismo de la existencia.\n\n> ¡Si deseas irte, hazlo manualmente!`);
+                return m.reply(`*${config.visuals.emoji2}* No puedes eliminarte a ti mismo de la existencia.\n\n> ¡Si deseas irte, hazlo manualmente!`);
             }
 
             if (userToKick === ownerNumber) {
-                return m.reply(`*${config.visuals.emoji2} \`JERARQUÍA INVIOLABLE\` ${config.visuals.emoji2}*\n\nHas intentado atacar al Creador. La acción ha sido bloqueada.\n\n> ¡Nadie toca al Owner en este servidor!`);
+                return m.reply(`*${config.visuals.emoji2}* Has intentado atacar al Creador. La acción ha sido bloqueada.\n\n> ¡Nadie toca al Owner en este servidor!`);
             }
 
             if (isTargetAdmin) {
-                return m.reply(`*${config.visuals.emoji2} \`PROTECCIÓN DE RANGO\` ${config.visuals.emoji2}*\n\nEl objetivo posee privilegios de Administrador. No puedo procesar esta orden.\n\n> ¡Debes quitarle el rango primero si deseas expulsarlo!`);
+                return m.reply(`*${config.visuals.emoji2}* El objetivo posee privilegios de Administrador. No puedo procesar esta orden.\n\n> ¡Debes quitarle el rango primero si deseas expulsarlo!`);
             }
 
             if (userToKick === botNumber) {
