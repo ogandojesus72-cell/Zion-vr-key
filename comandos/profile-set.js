@@ -2,8 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '../config.js';
 
-const dbDir = './config/database/profile';
-const dbPath = path.resolve(dbDir, 'profiles.json');
+const dbPath = './config/database/profile/profiles.json';
 
 const profileSettings = {
     name: 'profile-set',
@@ -13,73 +12,58 @@ const profileSettings = {
 
     run: async (conn, m, args) => {
         try {
-            // Asegurar que la carpeta existe
-            if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-
-            // Leer base de datos con manejo de errores total
-            let db = {};
-            if (fs.existsSync(dbPath)) {
-                try {
-                    const content = fs.readFileSync(dbPath, 'utf-8');
-                    db = content ? JSON.parse(content) : {};
-                } catch (e) {
-                    db = {}; // Si el JSON está roto, empezamos de cero
-                }
-            }
-
-            const user = m.sender.split('@')[0].split(':')[0];
+            // Cargar DB
+            if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, '{}');
+            let db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+            
+            const user = m.sender.split('@')[0];
             if (!db[user]) db[user] = {};
 
-            const cmd = m.body.split(' ')[0].toLowerCase().replace('#', '');
+            const text = m.body.toLowerCase();
 
-            // Lógica de Comandos
-            if (cmd === 'setage') {
+            if (text.includes('setage')) {
                 const age = parseInt(args[0]);
-                if (!args[0] || isNaN(age)) return m.reply(`*${config.visuals.emoji2}* ¡Animal! Pon un número.\n> Ejemplo: *#setage 20*`);
-                if (age < 8 || age > 85) return m.reply(`*${config.visuals.emoji2}* Rango de edad: 8 a 85 años.`);
+                if (isNaN(age) || age < 8 || age > 85) {
+                    return m.reply(`*${config.visuals.emoji2}* Pon una edad válida (8-85).\n> Ejemplo: #setage 20`);
+                }
                 db[user].age = age;
-                m.reply(`*${config.visuals.emoji3}* Edad: *${age}* guardada.`);
+                m.reply(`*${config.visuals.emoji3}* Edad guardada: *${age}*`);
             } 
             
-            else if (cmd === 'setgenre') {
+            else if (text.includes('setgenre')) {
                 const genre = args[0]?.toLowerCase();
-                if (genre !== 'hombre' && genre !== 'mujer') return m.reply(`*${config.visuals.emoji2}* Solo *hombre* o *mujer*.`);
-                db[user].genre = genre.charAt(0).toUpperCase() + genre.slice(1);
-                m.reply(`*${config.visuals.emoji3}* Género: *${db[user].genre}*`);
+                if (genre !== 'hombre' && genre !== 'mujer') {
+                    return m.reply(`*${config.visuals.emoji2}* Solo se permite: *hombre* o *mujer*.`);
+                }
+                db[user].genre = genre === 'hombre' ? 'Hombre' : 'Mujer';
+                m.reply(`*${config.visuals.emoji3}* Género guardado: *${db[user].genre}*`);
             }
 
-            else if (cmd === 'setbirth') {
-                if (!args[0]) return m.reply(`*${config.visuals.emoji2}* Uso: *#setbirth 15/05*`);
+            else if (text.includes('setbirth')) {
+                if (!args[0]) return m.reply(`*${config.visuals.emoji2}* Ejemplo: #setbirth 15/05`);
                 db[user].birth = args[0];
                 m.reply(`*${config.visuals.emoji3}* Cumpleaños guardado.`);
             }
 
-            else if (cmd === 'setpjfavorite') {
-                if (!args[0]) return m.reply(`*${config.visuals.emoji2}* Escribe el nombre del personaje.`);
+            else if (text.includes('setpjfavorite')) {
+                if (!args[0]) return m.reply(`*${config.visuals.emoji2}* Pon el nombre del personaje.`);
                 db[user].favPj = args.join(' ');
-                m.reply(`*${config.visuals.emoji3}* PJ Favorito guardado.`);
+                m.reply(`*${config.visuals.emoji3}* Favorito guardado.`);
             }
 
-            else if (cmd.startsWith('del')) {
-                const key = cmd.replace('del', '').replace('pjfavorite', 'favPj');
-                if (db[user] && db[user][key]) {
-                    delete db[user][key];
-                    m.reply(`*${config.visuals.emoji3}* Borrado.`);
-                } else {
-                    m.reply(`*${config.visuals.emoji2}* No hay nada que borrar.`);
-                }
+            else if (text.includes('del')) {
+                const key = text.includes('age') ? 'age' : text.includes('genre') ? 'genre' : text.includes('birth') ? 'birth' : 'favPj';
+                delete db[user][key];
+                m.reply(`*${config.visuals.emoji3}* Dato eliminado.`);
             }
 
-            // Guardado forzoso
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-        } catch (err) {
-            console.error(err);
-            // Si llega aquí, es un problema de permisos del sistema de archivos
-            m.reply(`*${config.visuals.emoji2}* El bot no puede escribir en la carpeta. Revisa los permisos.`);
+        } catch (e) {
+            console.log(e);
+            m.reply(`*${config.visuals.emoji2}* Error en el archivo. Borra el JSON y deja que el bot lo cree solo.`);
         }
     }
 };
 
 export default profileSettings;
-l
