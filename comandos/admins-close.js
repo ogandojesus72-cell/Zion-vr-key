@@ -1,4 +1,5 @@
 import { config } from '../config.js';
+import { avisos } from '../config/avisos.js';
 
 const closeGroup = {
     name: 'close',
@@ -14,7 +15,7 @@ const closeGroup = {
             const isBotAdmin = groupMetadata.participants.find(p => p.id === botNumber)?.admin;
 
             if (!isBotAdmin) {
-                return m.reply(`*${config.visuals.emoji2}* El bot no posee rango de Administrador. Requiero permisos elevados para cerrar las comunicaciones.\n\n> ¡No puedo gestionar el grupo sin los permisos adecuados!`);
+                return m.reply(avisos.noBotAdmin);
             }
 
             if (groupMetadata.announce) {
