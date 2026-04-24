@@ -19,18 +19,18 @@ const birthdaySystem = {
             let db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
 
             if (cmd.includes('delbirth') || cmd.includes('borrarcumple')) {
-                if (!db[user]) return m.reply(`*${config.visuals.emoji2} \`DATO INEXISTENTE\` ${config.visuals.emoji2}*\n\nNo hay una fecha de nacimiento registrada en tu perfil.\n\n> ¡El olvido es la única muerte real!`);
+                if (!db[user]) return m.reply(`*${config.visuals.emoji2} \`DATO INEXISTENTE\` ${config.visuals.emoji2}*\n\nNo hay una fecha registrada.\n\n> ¡El olvido es la única muerte real!`);
                 delete db[user];
                 fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-                return m.reply(`*${config.visuals.emoji3} \`REGISTRO PURGADO\` ${config.visuals.emoji3}*\n\nTu fecha de nacimiento ha sido borrada de la matriz.\n\n> ¡Has vuelto a ser un ser sin tiempo!`);
+                return m.reply(`*${config.visuals.emoji3} \`REGISTRO PURGADO\` ${config.visuals.emoji3}*\n\nFecha eliminada correctamente.\n\n> ¡Has vuelto a ser un ser sin tiempo!`);
             }
 
-            const input = args[0]; 
-            const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-            
-            if (!input || !regex.test(input)) return m.reply(`*${config.visuals.emoji2} \`FORMATO INVÁLIDO\` ${config.visuals.emoji2}*\n\nUsa el formato: DD/MM/AAAA\n\n> Ejemplo: #setbirth 15/05/2000`);
+            if (!args[0]) return m.reply(`*${config.visuals.emoji2} \`FALTAN DATOS\` ${config.visuals.emoji2}*\n\nDebes ingresar tu fecha.\n\n> Ejemplo: #setbirth 15/05/2000`);
 
-            const [_, day, month, year] = input.match(regex).map(Number);
+            const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+            if (!regex.test(args[0])) return m.reply(`*${config.visuals.emoji2} \`FORMATO INVÁLIDO\` ${config.visuals.emoji2}*\n\nUsa: DD/MM/AAAA`);
+
+            const [_, day, month, year] = args[0].match(regex).map(Number);
             const birthDate = new Date(year, month - 1, day);
             const today = new Date(2026, 3, 24); 
             
@@ -38,12 +38,12 @@ const birthdaySystem = {
             const mDiff = today.getMonth() - birthDate.getMonth();
             if (mDiff < 0 || (mDiff === 0 && today.getDate() < birthDate.getDate())) age--;
 
-            if (age < 8 || age > 85) return m.reply(`*${config.visuals.emoji2} \`EDAD NO PERMITIDA\` ${config.visuals.emoji2}*\n\nSolo se permiten edades entre 8 y 85 años (Nacidos entre 1941 y 2018).\n\n> ¡No aceptamos viajeros del tiempo ni recién nacidos!`);
+            if (age < 8 || age > 85) return m.reply(`*${config.visuals.emoji2} \`RANGO INVÁLIDO\` ${config.visuals.emoji2}*\n\nSolo se permiten edades entre 8 y 85 años.\n\n> ¡Nacidos entre 1941 y 2018!`);
 
-            db[user] = { birth: input, age: age };
+            db[user] = { birth: args[0], age: age };
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-            m.reply(`*${config.visuals.emoji3} \`CRONOLOGÍA FIJADA\` ${config.visuals.emoji3}*\n\nFecha: *${input}*\nEdad calculada: *${age} años*\n\n> ¡Tu lugar en el tiempo ha sido asegurado!`);
+            m.reply(`*${config.visuals.emoji3} \`CRONOLOGÍA FIJADA\` ${config.visuals.emoji3}*\n\nFecha: *${args[0]}*\nEdad: *${age} años*\n\n> ¡Tu lugar en el tiempo ha sido asegurado!`);
 
         } catch (e) {
             m.reply('✘ Error en el registro cronológico.');
