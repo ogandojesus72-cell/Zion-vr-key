@@ -5,27 +5,30 @@ import { config } from '../config.js';
 const genrePath = path.resolve('./config/database/profile/genres.json');
 const marryPath = path.resolve('./config/database/profile/casados.json');
 
-const setGenreCommand = {
-    name: 'setgenre',
-    alias: ['genero'],
+const genreSystem = {
+    name: 'profile-setgenre',
+    alias: ['setgenre', 'delgenre', 'genero', 'borrargenero'],
     category: 'profile',
     noPrefix: true,
 
     run: async (conn, m, args) => {
         try {
             const user = m.sender.split('@')[0].split(':')[0];
-            const genre = args[0]?.toLowerCase();
-
+            const cmd = m.body.toLowerCase();
             let genres = JSON.parse(fs.readFileSync(genrePath, 'utf-8'));
             let casados = JSON.parse(fs.readFileSync(marryPath, 'utf-8'));
 
-            if (genres[user]) {
-                return m.reply(`*${config.visuals.emoji2}* Ya tienes el género *${genres[user]}* establecido. Para cambiarlo, usa #delgenre.`);
+            if (cmd.includes('delgenre') || cmd.includes('borrargenero')) {
+                if (!genres[user]) return m.reply(`*${config.visuals.emoji2}* No posees un género establecido.`);
+                delete genres[user];
+                fs.writeFileSync(genrePath, JSON.stringify(genres, null, 2));
+                return m.reply(`*${config.visuals.emoji3}* \`GÉNERO ELIMINADO\` 🗑️`);
             }
 
-            if (genre !== 'hombre' && genre !== 'mujer') {
-                return m.reply(`*${config.visuals.emoji2}* Uso: #setgenre hombre o #setgenre mujer`);
-            }
+            if (genres[user]) return m.reply(`*${config.visuals.emoji2}* Identidad fijada: *${genres[user]}*. Usa #delgenre para resetear.`);
+            
+            const genre = args[0]?.toLowerCase();
+            if (genre !== 'hombre' && genre !== 'mujer') return m.reply(`*${config.visuals.emoji2}* Formato: #setgenre hombre/mujer`);
 
             const nuevoGenero = genre === 'hombre' ? 'Hombre' : 'Mujer';
             genres[user] = nuevoGenero;
@@ -34,27 +37,21 @@ const setGenreCommand = {
             if (casados[user]) {
                 const pareja = casados[user];
                 const generoPareja = genres[pareja];
-
                 if (generoPareja === nuevoGenero) {
                     delete casados[user];
                     delete casados[pareja];
                     fs.writeFileSync(marryPath, JSON.stringify(casados, null, 2));
-
-                    const aviso = `*⚠︎ DIVORCIO AUTOMÁTICO ⚠︎*\n\nSe han detectado géneros iguales en el matrimonio. El matrimonio ha sido anulado.`;
-                    
+                    const aviso = `*♰ DIVORCIO AUTOMÁTICO ♰*\n\nSimetría de géneros detectada. El vínculo ha sido anulado.`;
                     await conn.sendMessage(m.sender, { text: aviso });
                     await conn.sendMessage(pareja + '@s.whatsapp.net', { text: aviso });
-                    
-                    return m.reply(`*${config.visuals.emoji3}* Género establecido, pero debido a conflicto con tu pareja, han sido divorciados.`);
+                    return m.reply(`*${config.visuals.emoji3}* Género fijado. Se ha disuelto el vínculo con @${pareja} por incompatibilidad.`);
                 }
             }
-
-            m.reply(`*${config.visuals.emoji3}* Género establecido como: *${nuevoGenero}*`);
-
+            m.reply(`*${config.visuals.emoji3}* \`GÉNERO ESTABLECIDO:\` *${nuevoGenero}* ✦`);
         } catch (e) {
-            m.reply('Error al procesar el género.');
+            m.reply('✘ Error en la matriz de identidad.');
         }
     }
 };
 
-export default setGenreCommand;
+export default genreSystem;
