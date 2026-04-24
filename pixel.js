@@ -14,7 +14,7 @@ export const pixelHandler = async (conn, m, config) => {
 
         const sender = m.sender || m.key.participant || m.key.remoteJid;
         const misIdentidades = config.owner || [];
-        const isOwner = misIdentidades.includes(sender) || m.key.fromMe;
+        const isOwner = misIdentidades.some(id => (typeof id === 'string' ? id : id[0]).includes(sender.split('@')[0])) || m.key.fromMe;
         const isGroup = chat.endsWith('@g.us');
 
         const type = Object.keys(m.message)[0];
@@ -78,8 +78,7 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!global.db.data.chats[chat]) global.db.data.chats[chat] = { rolls: {} };
 
-        logger(m, conn);
-        await cmd.run(conn, m, args, usedPrefix, commandName, text, usedPrefix);
+        await cmd.run(conn, m, args, usedPrefix, commandName, text);
 
     } catch (err) {
         console.error(chalk.red('[ERROR PIXEL]'), err);
