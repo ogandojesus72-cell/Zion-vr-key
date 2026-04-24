@@ -3,7 +3,7 @@ import { avisos } from '../config/avisos.js';
 
 const openGroup = {
     name: 'open',
-    alias: ['abrirgroup', 'abrirdatos', 'abrir'],
+    alias: ['abrirgroup', 'abrir'],
     category: 'admins',
     isAdmin: true,
     noPrefix: true,
@@ -19,12 +19,12 @@ const openGroup = {
             }
 
             if (!groupMetadata.announce) {
-                return m.reply(`*${config.visuals.emoji2}* El grupo ya se encuentra abierto para todos los miembros.\n\n> ¡No es necesario ejecutar la apertura de nuevo!`);
+                return m.reply(`*${config.visuals.emoji2}* El grupo ya se encuentra abierto.\n\n> ¡No es necesario ejecutar la apertura de nuevo!`);
             }
 
             await conn.groupSettingUpdate(m.chat, 'not_announcement');
             
-            m.reply(`*${config.visuals.emoji3} \`GRUPO ABIERTO\` ${config.visuals.emoji3}*\n\nLa restricción ha sido levantada. Todos los miembros pueden enviar mensajes ahora.\n\n> ¡Mantengan el orden y respeten las reglas!`);
+            m.reply(`*${config.visuals.emoji3} \`GRUPO ABIERTO\` ${config.visuals.emoji3}*\n\nLa restricción ha sido levantada.\n\n> ¡Mantengan el orden y respeten las reglas!`);
         } catch (e) {
             m.reply(`*${config.visuals.emoji2}* Error al intentar abrir el grupo.`);
         }
