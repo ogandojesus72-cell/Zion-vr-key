@@ -4,8 +4,7 @@ const hidetagCommand = {
     name: 'hidetag',
     alias: ['tag', 'mencionar'],
     category: 'admins',
-    isOwner: false,
-    noPrefix: false,
+    noPrefix: true,
     isAdmin: true,
     isGroup: true,
 
