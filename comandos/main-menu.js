@@ -99,6 +99,21 @@ const menuCommand = {
 > ❀ Libera a un personaje de tu propiedad.
 
 
+*» (❍ᴥ❍ʋ) \`PERFIL\` «*
+> ꕥ Gestiona tu identidad, edad y relaciones en el bot.
+
+*✿︎ ${prefix}profile • ${prefix}perfil*
+> ❀ Visualiza tu estado, economía y pareja.
+*✿︎ ${prefix}setgenre • ${prefix}delgenre*
+> ❀ Establece o elimina tu identidad de género.
+*✿︎ ${prefix}setbirth • ${prefix}delbirth*
+> ❀ Registra o purga tu fecha de nacimiento.
+*✿︎ ${prefix}setage • ${prefix}delage*
+> ❀ Define o borra tu edad actual (Rango 8-85).
+*✿︎ ${prefix}marry • ${prefix}divorce*
+> ❀ Inicia un pacto matrimonial o disuelve tu vínculo.
+
+
 *» (❍ᴥ❍ʋ) \`GESTIÓN\` «*
 > ꕥ Comandos de grupo.
 
