@@ -1,5 +1,4 @@
 import { config } from '../config.js';
-import { avisos } from '../config/avisos.js';
 
 const closeGroup = {
     name: 'close',
@@ -15,7 +14,7 @@ const closeGroup = {
             const isBotAdmin = groupMetadata.participants.find(p => p.id === botNumber)?.admin;
 
             if (!isBotAdmin) {
-                return m.reply(avisos.noBotAdmin);
+                return m.reply(`*${config.visuals.emoji2}* El bot no posee rango de Administrador. Requiero permisos elevados para cerrar las comunicaciones.\n\n> ¡No puedo gestionar el grupo sin los permisos adecuados!`);
             }
 
             if (groupMetadata.announce) {
@@ -24,7 +23,7 @@ const closeGroup = {
 
             await conn.groupSettingUpdate(m.chat, 'announcement');
             
-            m.reply(`*${config.visuals.emoji3} \`GRUPO CERRADO\` ${config.visuals.emoji3}*\n\nSe ha activado el modo restrictivo.\n\n> ¡Momento de silencio en el servidor!`);
+            m.reply(`*${config.visuals.emoji3} \`GRUPO CERRADO\` ${config.visuals.emoji3}*\n\nSe ha activado el modo restrictivo. Solo los administradores pueden enviar mensajes.\n\n> ¡Momento de silencio en el servidor!`);
         } catch (e) {
             m.reply(`*${config.visuals.emoji2}* Error al intentar cerrar el grupo.`);
         }
