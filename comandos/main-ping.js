@@ -1,4 +1,6 @@
 import { config } from '../config.js';
+import fs from 'fs-extra';
+import path from 'path';
 
 const pingCommand = {
     name: 'ping',
@@ -20,8 +22,20 @@ const pingCommand = {
             const end = Date.now();
             const latencia = end - start;
 
+            const botNumber = conn.user.id.split(':')[0];
+            const settingsPath = path.resolve(`./sesiones_subbots/${botNumber}/settings.json`);
+            
+            let displayShortName = config.botName;
+
+            if (fs.existsSync(settingsPath)) {
+                const localData = await fs.readJson(settingsPath);
+                if (localData.shortName) {
+                    displayShortName = localData.shortName;
+                }
+            }
+
             await conn.sendMessage(m.chat, { 
-                text: `*${config.visuals.emoji3}* \`KAZUMA PING\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4} Velocidad:* ${latencia} ms\n*${config.visuals.emoji} Estado:* Online\n\n> *${config.visuals.emoji2}* \`SISTEMA OPERATIVO\``,
+                text: `*${config.visuals.emoji3}* \`${displayShortName.toUpperCase()} PING\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4} Velocidad:* ${latencia} ms\n*${config.visuals.emoji} Estado:* Online\n\n> *${config.visuals.emoji2}* \`SISTEMA OPERATIVO\``,
                 edit: pingMsg.key 
             });
 
