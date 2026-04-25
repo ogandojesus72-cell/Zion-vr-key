@@ -25,6 +25,7 @@
     "node-cache": "latest",
     "qrcode-terminal": "^0.12.0",
     "yargs": "^18.0.0",
-    "wa-sticker-formatter": "^4.4.4"
+    "wa-sticker-formatter": "^4.4.4",
+    "fluent-ffmpeg": "^2.1.2"
   }
-}
+} 
