@@ -18,25 +18,35 @@ const setBotName = {
                 return m.reply(`*${config.visuals.emoji2}* Solo el dueño de este socket puede personalizar su nombre.`);
             }
 
-            if (!args[0]) {
-                return m.reply(`*${config.visuals.emoji2} \`FALTAN DATOS\` ${config.visuals.emoji2}*\n\nIngresa al menos un nombre para el bot.`);
+            const fullText = args.join(' ');
+            if (!fullText) {
+                return m.reply(`*${config.visuals.emoji2} \`FALTAN DATOS\` ${config.visuals.emoji2}*\n\nUsa: #setname Corto/Largo Largo Largo`);
             }
 
             let shortName, longName;
 
-            if (args.length === 1) {
-                shortName = args[0];
-                longName = args[0];
+            if (fullText.includes('/')) {
+                let [part1, ...part2] = fullText.split('/');
+                shortName = part1.trim();
+                longName = part2.join('/').trim();
+
+                if (shortName.includes(' ')) {
+                    return m.reply(`*${config.visuals.emoji2}* El nombre corto antes de la \`/\` no puede tener espacios.`);
+                }
             } else {
-                shortName = args[0];
-                longName = args.slice(1).join(' ');
+                shortName = fullText.trim();
+                longName = fullText.trim();
+            }
+
+            if (!shortName || !longName) {
+                return m.reply(`*${config.visuals.emoji2}* Asegúrate de llenar ambos lados de la barra.`);
             }
 
             const sessionsPath = path.resolve('./sesiones_subbots');
             const userSettingsPath = path.join(sessionsPath, botNumber, 'settings.json');
 
             if (!fs.existsSync(path.join(sessionsPath, botNumber))) {
-                return m.reply(`*${config.visuals.emoji2}* No se encontró la carpeta de sesión.`);
+                return m.reply(`*${config.visuals.emoji2}* Carpeta de sesión no encontrada.`);
             }
 
             let localConfig = {};
@@ -50,7 +60,7 @@ const setBotName = {
 
             await fs.writeJson(userSettingsPath, localConfig, { spaces: 2 });
 
-            await m.reply(`*${config.visuals.emoji3} \`CONFIGURACIÓN LOCAL\` ${config.visuals.emoji3}*\n\nNombre actualizado correctamente.\n\n*Corto:* ${shortName}\n*Largo:* ${longName}\n\n> ¡Ajuste guardado en tu sesión!`);
+            await m.reply(`*${config.visuals.emoji3} \`CONFIGURACIÓN LOCAL\` ${config.visuals.emoji3}*\n\nNombres guardados correctamente.\n\n*Corto:* ${shortName}\n*Largo:* ${longName}\n\n> Separador \`/\` detectado con éxito.`);
 
         } catch (e) {
             console.error(e);
