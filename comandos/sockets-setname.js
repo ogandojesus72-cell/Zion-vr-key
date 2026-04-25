@@ -74,10 +74,6 @@ const setBotName = {
             const successMsg = `*${config.visuals.emoji3} \`CONFIGURACIÓN LOCAL\` ${config.visuals.emoji3}*\n\nNombres guardados correctamente.\n\n*Corto:* ${shortName}\n*Largo:* ${longName}\n\n> Ajuste aplicado al socket actual.`;
 
             await conn.sendMessage(from, { text: successMsg }, { quoted: m });
-            
-            if (from !== m.sender) {
-                await conn.sendMessage(m.sender, { text: successMsg });
-            }
 
         } catch (e) {
             console.error(e);
