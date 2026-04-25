@@ -21,7 +21,7 @@ const pptCommand = {
             const cooldown = 5 * 60 * 1000; 
 
             if (!choice || !['piedra', 'papel', 'tijera'].includes(choice)) {
-                return m.reply(`*${config.visuals.emoji2} \`Usa el comando correctamente\` {config.visuals.emoji2}*\n\n➪ *Uso correcto* »\n> ✿︎ *${usedPrefix}ppt (piedra/papel/tijera) (cantidad)*\n> ✿︎Ejemplo: *${usedPrefix}ppt piedra 5000*`);
+                return m.reply(`*${config.visuals.emoji2} \`Usa el comando correctamente\` ${config.visuals.emoji2}*\n\n➪ *Uso correcto* »\n> ✿︎ *${usedPrefix}ppt (piedra/papel/tijera) (cantidad)*\n> ✿︎Ejemplo: *${usedPrefix}ppt piedra 5000*`);
             }
 
             const bet = parseInt(betInput);
