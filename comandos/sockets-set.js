@@ -11,18 +11,18 @@ const setMenu = {
     run: async (conn, m, args, usedPrefix) => {
         try {
             const from = m.chat;
-            const botNumber = conn.user.id.split(':')[0];
+            const senderNumber = m.sender.split('@')[0].split(':')[0];
             const sessionsPath = path.resolve('./sesiones_subbots');
-            const sessionFolder = path.join(sessionsPath, botNumber);
+            const userSessionFolder = path.join(sessionsPath, senderNumber);
 
-            if (!fs.existsSync(sessionFolder)) {
+            if (!fs.existsSync(userSessionFolder)) {
                 return await conn.sendMessage(from, { 
-                    text: `*${config.visuals.emoji2} \`ACCESO DENEGADO\` ${config.visuals.emoji2}*\n\nEste comando solo puede ser ejecutado por los *Sockets* dentro de su propia sesión.` 
+                    text: `*${config.visuals.emoji2} \`ACCESO DENEGADO\` ${config.visuals.emoji2}*\n\nEste comando solo puede ser ejecutado por usuarios que posean un *Socket* activo en el sistema.` 
                 }, { quoted: m });
             }
 
             const prefix = usedPrefix || '#';
-            
+
             const textoSettings = `*${config.visuals.emoji3}* \`CONFIGURACIÓN DE SOCKET\` *${config.visuals.emoji3}*
 
 Hola, aquí puedes personalizar la apariencia de tu socket en el sistema.
