@@ -71,7 +71,7 @@ const setBotName = {
 
             await fs.writeJson(userSettingsPath, localConfig, { spaces: 2 });
 
-            const successMsg = `*${config.visuals.emoji3} \`CONFIGURACIÓN LOCAL\` ${config.visuals.emoji3}*\n\nNombres guardados correctamente.\n\n*Corto:* ${shortName}\n*Largo:* ${longName}\n\n> Ajuste aplicado al socket actual.`;
+            const successMsg = `*${config.visuals.emoji3} \`CONFIGURACIÓN EXITOSA\` ${config.visuals.emoji3}*\n\nNombres guardados correctamente.\n\n*Corto:* ${shortName}\n*Largo:* ${longName}\n\n> Ajuste aplicado al socket actual.`;
 
             await conn.sendMessage(from, { text: successMsg }, { quoted: m });
             
