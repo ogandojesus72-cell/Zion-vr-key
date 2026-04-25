@@ -1,5 +1,7 @@
 import { config } from '../config.js';
 import { menuCategories } from '../config/menu.js';
+import fs from 'fs-extra';
+import path from 'path';
 
 const menuCommand = {
     name: 'menu',
@@ -14,7 +16,19 @@ const menuCommand = {
             const botType = config.getBotType(conn);
             const input = args[0]?.toLowerCase();
 
-            let header = `¡Hola! Soy ${config.botName} (${botType}).\n\n`;
+            const botNumber = conn.user.id.split(':')[0];
+            const settingsPath = path.resolve(`./sesiones_subbots/${botNumber}/settings.json`);
+            
+            let displayLongName = config.botName;
+
+            if (fs.existsSync(settingsPath)) {
+                const localData = await fs.readJson(settingsPath);
+                if (localData.longName) {
+                    displayLongName = localData.longName;
+                }
+            }
+
+            let header = `¡Hola! Soy ${displayLongName} (${botType}).\n\n`;
             let subHeader = input && menuCategories[input] 
                 ? `*☞︎︎︎ Aqui está mi lista de comandos para \`${input.toUpperCase()}\` ☜︎︎︎*\n\n`
                 : `*☞︎︎︎ Aqui está mi lista de comandos ☜︎︎︎*\n\n`;
