@@ -29,7 +29,7 @@ const removeCoins = {
             const montoAQuitar = parseInt(args.find(arg => !isNaN(arg)));
 
             if (!montoAQuitar || montoAQuitar <= 0) {
-                return m.reply(`*${config.visuals.emoji2}* \`Monto Inválido\`\n\nIngresa una cantidad válida para poder enviar los coins.`);
+                return m.reply(`*${config.visuals.emoji2}* \`Monto Inválido\`\n\nIngresa una cantidad válida para poder quitar los coins.`);
             }
 
             if (!fs.existsSync(economyPath)) {
