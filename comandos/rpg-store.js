@@ -25,26 +25,26 @@ Bienvenido al mercado oficial. Utiliza tus coins para adquirir ventajas exclusiv
 
 🛒 *ARTÍCULOS DISPONIBLES*
 
-1. 🧲 **Imán de Minas**
+1. 🧲 *Imán de Minas*
    > *Precio:* ¥25,000
    > *Efecto:* Duplica la obtención de minerales en tu próxima minería.
 
-2. 🍀 **Trébol de la Suerte**
+2. 🍀 *Trébol de la Suerte*
    > *Precio:* ¥40,000
    > *Efecto:* Protege tu carnada y elimina penalizaciones en tu próxima pesca.
 
-3. 🛡️ **Escudo de Mazmorra**
+3. 🛡️ *Escudo de Mazmorra*
    > *Precio:* ¥35,000
    > *Efecto:* Reduce el tiempo de espera de la mazmorra a la mitad por un uso.
 
-4. 🧧 **Amuleto del Apostador**
+4. 🧧 *Amuleto del Apostador*
    > *Precio:* ¥60,000
    > *Efecto:* Habilita una apuesta especial de hasta ¥30,000 en el duelo de PPT.
 
 ---
-💡 *Instrucciones:* Para adquirir un artículo, utiliza el comando \`buy\` seguido del número o nombre del item.
+💡 *Instrucciones:* Para obtener un artículo, utiliza el comando *adquirir* seguido del número o nombre del item.
 
-> Los objetos se guardarán en tu inventario y se activarán automáticamente al usarlos.`;
+> Ejemplo: *#adquirir 1* o *#adquirir iman*`;
 
             await conn.sendMessage(m.chat, { 
                 image: { url: 'https://upload.yotsuba.giize.com/u/JXwecTzS.jpeg' }, 
