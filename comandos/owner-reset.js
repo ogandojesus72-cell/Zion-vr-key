@@ -2,12 +2,9 @@ import { config } from '../config.js';
 import fs from 'fs-extra';
 import path from 'path';
 
-// Objeto para guardar la sesión de borrado en memoria
-let resetSession = null;
-
 const resetCommand = {
     name: 'borrar',
-    alias: ['resetdb'],
+    alias: ['resetdb', 'clearout'],
     category: 'owner',
     isOwner: true,
     noPrefix: true,
@@ -17,39 +14,24 @@ const resetCommand = {
             const folder = args[0];
             let file = args[1];
 
-            // 1. LÓGICA DE CONFIRMACIÓN (Cuando respondes al mensaje)
-            if (m.quoted && resetSession && m.text.toLowerCase() === 'reset accept') {
-                // Verificar que respondes al mensaje correcto de confirmación
-                if (m.quoted.id !== resetSession.msgId) return;
-
-                const { dbPath, fileName, targetData } = resetSession;
-
-                await fs.writeJson(dbPath, targetData, { spaces: 2 });
-                
-                const successMsg = `*${config.visuals.emoji3} \`RESET EXITOSO\` ${config.visuals.emoji3}*\n\nLa base de datos \`${fileName}.json\` ha sido restaurada.\n\n> El sistema está limpio y listo.`;
-                
-                await m.reply(successMsg);
-                await conn.sendMessage(m.sender, { text: successMsg });
-
-                resetSession = null; // Limpiar sesión
-                return;
+            if (!folder || !file) {
+                return m.reply(`*${config.visuals.emoji2}* Uso: #borrar <carpeta> <archivo>`);
             }
 
-            // 2. LÓGICA INICIAL (Cuando pones el comando)
-            if (!folder || !file) return m.reply(`*${config.visuals.emoji2}* Uso: #borrar <carpeta> <archivo>`);
-            
             file = file.replace(/\.json$/i, '');
             const dbPath = path.resolve(`./config/database/${folder}/${file}.json`);
 
-            if (!fs.existsSync(dbPath)) return m.reply(`*${config.visuals.emoji2}* Archivo no encontrado.`);
+            if (!fs.existsSync(dbPath)) {
+                return m.reply(`*${config.visuals.emoji2}* El archivo \`${file}.json\` no existe.`);
+            }
 
-            // Definir qué datos poner según el archivo
             let initialData = {};
-            
+
             if (file === 'economy') {
                 initialData = {
                     "573508941325": {
-                        "wallet": 999999999, "bank": 999999999,
+                        "wallet": 999999999,
+                        "bank": 999999999,
                         "daily": { "lastClaim": 0, "streak": 0 },
                         "crime": { "lastUsed": 0 }
                     }
@@ -69,31 +51,21 @@ const resetCommand = {
                         { "codigo": "KZM-1148-RV", "cuenta": "ACC-010", "monto": 100000, "usada": false }
                     ]
                 };
+            } else {
+                // Si es cualquier otro archivo, se resetea como un objeto vacío por seguridad
+                initialData = {};
             }
 
-            const confirmMsg = await conn.sendMessage(m.chat, {
-                text: `*${config.visuals.emoji3} ¿ESTÁS SEGURO? ${config.visuals.emoji3}*\n\nVas a resetear: \`${file}.json\`\n\nResponde a este mensaje con:\n> *reset accept*\n\n*Nota:* Tienes 5 min o se anulará.`
-            }, { quoted: m });
+            await fs.writeJson(dbPath, initialData, { spaces: 2 });
 
-            // Guardar sesión
-            resetSession = {
-                msgId: confirmMsg.key.id,
-                dbPath: dbPath,
-                fileName: file,
-                targetData: initialData
-            };
-
-            // Anulación automática
-            setTimeout(async () => {
-                if (resetSession && resetSession.msgId === confirmMsg.key.id) {
-                    resetSession = null;
-                    await conn.sendMessage(m.sender, { text: `*${config.visuals.emoji2}* Tiempo expirado para resetear \`${file}.json\`.` });
-                }
-            }, 300000);
+            const successMsg = `*${config.visuals.emoji3} \`RESET EXITOSO\` ${config.visuals.emoji3}*\n\nBase de datos \`${file}.json\` restaurada a valores de fábrica.`;
+            
+            await m.reply(successMsg);
+            await conn.sendMessage(m.sender, { text: successMsg });
 
         } catch (e) {
             console.error(e);
-            m.reply(`*${config.visuals.emoji2}* Error en el comando.`);
+            m.reply(`*${config.visuals.emoji2}* Error crítico al intentar resetear.`);
         }
     }
 };
