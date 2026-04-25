@@ -7,6 +7,7 @@ const marryPath = path.resolve('./config/database/profile/casados.json');
 const ecoPath = path.resolve('./config/database/economy/economy.json');
 const gachaPath = path.resolve('./config/database/gacha/gacha_list.json');
 const birthPath = path.resolve('./config/database/profile/birthdays.json');
+const rpgPath = path.resolve('./config/database/rpg/rpg.json');
 
 const profileCommand = {
     name: 'profile',
@@ -24,6 +25,7 @@ const profileCommand = {
             }
 
             const user = targetJid.split('@')[0].split(':')[0];
+            const group = m.chat;
             const mentions = [targetJid];
 
             const genres = fs.existsSync(genrePath) ? JSON.parse(fs.readFileSync(genrePath, 'utf-8')) : {};
@@ -31,6 +33,7 @@ const profileCommand = {
             const ecoDB = fs.existsSync(ecoPath) ? JSON.parse(fs.readFileSync(ecoPath, 'utf-8')) : {};
             const gachaDB = fs.existsSync(gachaPath) ? JSON.parse(fs.readFileSync(gachaPath, 'utf-8')) : {};
             const birthDB = fs.existsSync(birthPath) ? JSON.parse(fs.readFileSync(birthPath, 'utf-8')) : {};
+            const rpgDB = fs.existsSync(rpgPath) ? JSON.parse(fs.readFileSync(rpgPath, 'utf-8')) : {};
 
             const genero = genres[user] || 'No definido';
             const pareja = casados[user] ? `@${casados[user]}` : 'Soltero/a';
@@ -42,6 +45,10 @@ const profileCommand = {
             const wallet = Number(ecoDB[user]?.wallet) || 0;
             const bank = Number(ecoDB[user]?.bank) || 0;
             const totalPjs = Object.values(gachaDB).filter(pj => pj.owner === user).length;
+
+            const userRpg = rpgDB[group]?.[user] || { minerals: {}, rank: 'Novato de las Cuevas' };
+            const rank = userRpg.rank || 'Novato de las Cuevas';
+            const minerals = userRpg.minerals || {};
 
             let pp;
             try { 
@@ -56,11 +63,19 @@ const profileCommand = {
             txt += `*✿︎ Edad:* ${edad}\n`;
             txt += `*✿︎ Cumpleaños:* ${cumple}\n`;
             txt += `*✿︎ Pareja:* ${pareja}\n\n`;
+            
             txt += `*✿︎ INFO ECONOMY* ✿︎\n`;
             txt += `> ⴵ Personajes: *${totalPjs}*\n`;
             txt += `> ⴵ Cartera: *¥${wallet.toLocaleString()}*\n`;
             txt += `> ⴵ Banco: *¥${bank.toLocaleString()}*\n`;
-            txt += `> ⴵ Patrimonio: *¥${(wallet + bank).toLocaleString()}*`;
+            txt += `> ⴵ Patrimonio: *¥${(wallet + bank).toLocaleString()}*\n\n`;
+
+            txt += `*✿︎ INFO RPG ✿︎*\n`;
+            txt += `> ⴵ Rango: *${rank}*\n`;
+            txt += `> ⴵ Diamantes: *${minerals.diamantes || 0}*\n`;
+            txt += `> ⴵ Rubíes: *${minerals.rubies || 0}*\n`;
+            txt += `> ⴵ Oro: *${minerals.oro || 0}*\n`;
+            txt += `> ⴵ Gemas: *${(Number(minerals.esmeraldas || 0) + Number(minerals.zafiros || 0) + Number(minerals.amatistas || 0) + Number(minerals.perlas || 0))}*`;
 
             await conn.sendMessage(m.chat, { 
                 image: { url: pp }, 
@@ -69,6 +84,7 @@ const profileCommand = {
             }, { quoted: m });
 
         } catch (e) {
+            console.error(e);
             m.reply(`*${config.visuals.emoji2}* Error al cargar el perfil.`);
         }
     }
