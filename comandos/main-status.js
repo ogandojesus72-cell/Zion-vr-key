@@ -30,19 +30,19 @@ const statusCommand = {
 
             const botNumber = conn.user.id.split(':')[0];
             const settingsPath = path.resolve(`./sesiones_subbots/${botNumber}/settings.json`);
-            
-            let displayBotName = config.botName;
+
+            let shortName = config.botName;
+            let longName = config.botName;
 
             if (fs.existsSync(settingsPath)) {
                 const localData = await fs.readJson(settingsPath);
-                if (localData.shortName) {
-                    displayBotName = localData.shortName;
-                }
+                if (localData.shortName) shortName = localData.shortName;
+                if (localData.longName) longName = localData.longName;
             }
 
-            const textoStatus = `*${config.visuals.emoji3}* \`SISTEMA KAZUMA\` *${config.visuals.emoji3}*
+            const textoStatus = `*${config.visuals.emoji3}* \`SISTEMA ${longName.toUpperCase()}\` *${config.visuals.emoji3}*
 
-✿︎ Bot ᗒ *${displayBotName}*
+✿︎ Bot ᗒ *${shortName}*
 ❁ Uptime ᗒ *${uptimeDisplay}*
 ❀ Comandos ᗒ *${global.totalCommandsUsed || 0}*
 
