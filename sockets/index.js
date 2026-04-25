@@ -6,7 +6,7 @@ import {
     DisconnectReason,
     Browsers,
     jidNormalizedUser,
-    downloadContentFromMessage
+    downloadMediaMessage 
 } from '@whiskeysockets/baileys';
 import P from 'pino';
 import fs from 'fs';
@@ -74,10 +74,8 @@ export const startSubBot = async (userId, mainConn = null) => {
 
         m.reply = (text) => sock.sendMessage(m.chat, { text }, { quoted: m });
 
-        m.download = () => {
-            const msg = m.message.imageMessage || m.message.videoMessage || m.message.stickerMessage || m.message.audioMessage || m.message.documentMessage;
-            if (!msg) return null;
-            return downloadContentFromMessage(msg, Object.keys(m.message)[0].replace('Message', ''));
+        m.download = async () => {
+            return await downloadMediaMessage(m, 'buffer', {}, { logger: P({ level: 'silent' }) });
         };
 
         const msgType = Object.keys(m.message)[0];
@@ -99,7 +97,10 @@ export const startSubBot = async (userId, mainConn = null) => {
                     participant: contextInfo.participant
                 },
                 message: contextInfo.quotedMessage,
-                download: () => downloadContentFromMessage(q, type.replace('Message', ''))
+                download: async () => {
+                    const quotedMsg = { message: contextInfo.quotedMessage };
+                    return await downloadMediaMessage(quotedMsg, 'buffer', {}, { logger: P({ level: 'silent' }) });
+                }
             };
         } else {
             m.quoted = null;
