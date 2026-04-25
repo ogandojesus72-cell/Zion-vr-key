@@ -38,36 +38,30 @@ const pptCommand = {
             const totalMoney = (userData.wallet || 0) + (userData.bank || 0);
 
             if (totalMoney < bet) {
-                return m.reply(`*${config.visuals.emoji2}* No tienes suficiente dinero (contando banco y cartera) para apostar **¥${bet.toLocaleString()}**.\n\n> ¡No te rindas! Usa comandos como \`work\`, \`crime\` o \`mine\` para conseguir más coins. ✨`);
+                return m.reply(`*${config.visuals.emoji2}* No tienes suficiente dinero para apostar **¥${bet.toLocaleString()}**.\n\n> Usa comandos como \`work\`, \`crime\` o \`mine\` para ganar dinero. ✨`);
             }
 
-            // Lógica de victoria (95% ganar)
-            const isWin = Math.random() < 0.95;
+            const isWin = Math.random() < 0.95; 
             let botChoice;
             let result;
 
             if (isWin) {
                 result = 'win';
-                if (choice === 'piedra') botChoice = 'tijera';
-                if (choice === 'papel') botChoice = 'piedra';
-                if (choice === 'tijera') botChoice = 'papel';
+                botChoice = choice === 'piedra' ? 'tijera' : choice === 'papel' ? 'piedra' : 'papel';
             } else {
                 result = 'lose';
-                if (choice === 'piedra') botChoice = 'papel';
-                if (choice === 'papel') botChoice = 'tijera';
-                if (choice === 'tijera') botChoice = 'piedra';
+                botChoice = choice === 'piedra' ? 'papel' : choice === 'papel' ? 'tijera' : 'piedra';
             }
 
             const phrase = pptPhrases[result][Math.floor(Math.random() * pptPhrases[result].length)];
-            
-            // Si pierde, se le resta de la cartera (y si no alcanza, del banco)
+
             if (result === 'lose') {
                 if (ecoDb[user].wallet >= bet) {
                     ecoDb[user].wallet -= bet;
                 } else {
-                    const remaining = bet - ecoDb[user].wallet;
+                    const remaining = bet - (ecoDb[user].wallet || 0);
                     ecoDb[user].wallet = 0;
-                    ecoDb[user].bank -= remaining;
+                    ecoDb[user].bank = (ecoDb[user].bank || 0) - remaining;
                 }
             } else {
                 ecoDb[user].wallet = (ecoDb[user].wallet || 0) + bet;
@@ -76,7 +70,6 @@ const pptCommand = {
             await fs.writeJson(ecoPath, ecoDb, { spaces: 2 });
 
             const emojiMap = { piedra: '🗿', papel: '📄', tijera: '✂️' };
-            
             const textoFinal = `*${config.visuals.emoji3}* \`DUELO DE PPT\` *${config.visuals.emoji3}*
 
 👤 *Tú:* ${choice.toUpperCase()} ${emojiMap[choice]}
@@ -85,7 +78,7 @@ const pptCommand = {
 > ${phrase}
 
 ${result === 'win' ? `💰 *Ganaste:* ¥${bet.toLocaleString()}` : `📉 *Perdiste:* ¥${bet.toLocaleString()}`}
-✨ *Nuevo saldo total:* ¥${(ecoDb[user].wallet + ecoDb[user].bank).toLocaleString()}`;
+✨ *Saldo Total:* ¥${(ecoDb[user].wallet + (ecoDb[user].bank || 0)).toLocaleString()}`;
 
             await m.reply(textoFinal);
 
