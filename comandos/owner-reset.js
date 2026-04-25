@@ -1,14 +1,13 @@
 import { config } from '../config.js';
 import fs from 'fs-extra';
 import path from 'path';
-import NodeCache from 'node-cache';
 
-// Cache para manejar las confirmaciones (expira en 5 min)
-const resetAuth = new NodeCache({ stdTTL: 300, checkperiod: 60 });
+// Objeto para guardar la sesión de borrado en memoria
+let resetSession = null;
 
 const resetCommand = {
     name: 'borrar',
-    alias: ['resetdb', 'clearout'],
+    alias: ['resetdb'],
     category: 'owner',
     isOwner: true,
     noPrefix: true,
@@ -18,35 +17,25 @@ const resetCommand = {
             const folder = args[0];
             let file = args[1];
 
-            // Si es la respuesta de confirmación
-            if (m.quoted && m.quoted.text.includes('¿ESTÁS SEGURO?') && m.text.toLowerCase() === 'reset accept') {
-                const session = resetAuth.get(m.quoted.id);
-                
-                if (!session) return m.reply(`*${config.visuals.emoji2}* El tiempo ha expirado o el mensaje no es válido.`);
-                
-                await m.reply(`*${config.visuals.emoji3}* \`RESETEANDO BASE DE DATOS...\``);
+            // 1. LÓGICA DE CONFIRMACIÓN (Cuando respondes al mensaje)
+            if (m.quoted && resetSession && m.text.toLowerCase() === 'reset accept') {
+                // Verificar que respondes al mensaje correcto de confirmación
+                if (m.quoted.id !== resetSession.msgId) return;
 
-                const initialData = {
-                    "573508941325": {
-                        "wallet": 999999999, "bank": 999999999,
-                        "daily": { "lastClaim": 0, "streak": 0 },
-                        "crime": { "lastUsed": 0 }
-                    }
-                };
+                const { dbPath, fileName, targetData } = resetSession;
 
-                await fs.writeJson(session.path, initialData, { spaces: 2 });
-                resetAuth.del(m.quoted.id); // Eliminar oportunidad
-
-                const successMsg = `*${config.visuals.emoji3} \`ÉXITO TOTAL\` ${config.visuals.emoji3}*\n\nLa base de datos \`${session.file}.json\` ha sido restaurada a valores de fábrica.`;
+                await fs.writeJson(dbPath, targetData, { spaces: 2 });
                 
-                // Mensaje en el chat actual
+                const successMsg = `*${config.visuals.emoji3} \`RESET EXITOSO\` ${config.visuals.emoji3}*\n\nLa base de datos \`${fileName}.json\` ha sido restaurada.\n\n> El sistema está limpio y listo.`;
+                
                 await m.reply(successMsg);
-                // Mensaje al privado del Owner
                 await conn.sendMessage(m.sender, { text: successMsg });
+
+                resetSession = null; // Limpiar sesión
                 return;
             }
 
-            // --- Lógica Inicial del Comando ---
+            // 2. LÓGICA INICIAL (Cuando pones el comando)
             if (!folder || !file) return m.reply(`*${config.visuals.emoji2}* Uso: #borrar <carpeta> <archivo>`);
             
             file = file.replace(/\.json$/i, '');
@@ -54,29 +43,57 @@ const resetCommand = {
 
             if (!fs.existsSync(dbPath)) return m.reply(`*${config.visuals.emoji2}* Archivo no encontrado.`);
 
-            // Leer contenido silenciosamente
-            const content = await fs.readJson(dbPath);
+            // Definir qué datos poner según el archivo
+            let initialData = {};
+            
+            if (file === 'economy') {
+                initialData = {
+                    "573508941325": {
+                        "wallet": 999999999, "bank": 999999999,
+                        "daily": { "lastClaim": 0, "streak": 0 },
+                        "crime": { "lastUsed": 0 }
+                    }
+                };
+            } else if (file === 'targets') {
+                initialData = {
+                    "tarjetas": [
+                        { "codigo": "KZM-7721-XQ", "cuenta": "ACC-001", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-1054-LP", "cuenta": "ACC-002", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-8832-ML", "cuenta": "ACC-003", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-4490-ZS", "cuenta": "ACC-004", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-2210-BK", "cuenta": "ACC-005", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-6673-DJ", "cuenta": "ACC-006", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-3381-FW", "cuenta": "ACC-007", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-9902-GH", "cuenta": "ACC-008", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-5517-TY", "cuenta": "ACC-009", "monto": 100000, "usada": false },
+                        { "codigo": "KZM-1148-RV", "cuenta": "ACC-010", "monto": 100000, "usada": false }
+                    ]
+                };
+            }
 
             const confirmMsg = await conn.sendMessage(m.chat, {
-                text: `*${config.visuals.emoji3} ¿ESTÁS SEGURO? ${config.visuals.emoji3}*\n\nHas solicitado resetear: \`${folder}/${file}.json\`\n\nPara confirmar, responde a este mensaje con:\n> *reset accept*\n\n*Nota:* Tienes 5 minutos o la solicitud será anulada.`
+                text: `*${config.visuals.emoji3} ¿ESTÁS SEGURO? ${config.visuals.emoji3}*\n\nVas a resetear: \`${file}.json\`\n\nResponde a este mensaje con:\n> *reset accept*\n\n*Nota:* Tienes 5 min o se anulará.`
             }, { quoted: m });
 
-            // Guardar sesión en caché usando el ID del mensaje de confirmación
-            resetAuth.set(confirmMsg.key.id, { path: dbPath, file: file, owner: m.sender });
+            // Guardar sesión
+            resetSession = {
+                msgId: confirmMsg.key.id,
+                dbPath: dbPath,
+                fileName: file,
+                targetData: initialData
+            };
 
-            // Programar mensaje de anulación a los 5 minutos
+            // Anulación automática
             setTimeout(async () => {
-                if (resetAuth.has(confirmMsg.key.id)) {
-                    resetAuth.del(confirmMsg.key.id);
-                    await conn.sendMessage(m.sender, { 
-                        text: `*${config.visuals.emoji2} \`SOLICITUD ANULADA\` ${config.visuals.emoji2}*\n\nEl tiempo para resetear \`${file}.json\` ha expirado.` 
-                    });
+                if (resetSession && resetSession.msgId === confirmMsg.key.id) {
+                    resetSession = null;
+                    await conn.sendMessage(m.sender, { text: `*${config.visuals.emoji2}* Tiempo expirado para resetear \`${file}.json\`.` });
                 }
-            }, 300000); // 5 minutos
+            }, 300000);
 
         } catch (e) {
             console.error(e);
-            m.reply(`*${config.visuals.emoji2}* Error en el sistema de seguridad.`);
+            m.reply(`*${config.visuals.emoji2}* Error en el comando.`);
         }
     }
 };
