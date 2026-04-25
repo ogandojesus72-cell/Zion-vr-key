@@ -17,6 +17,8 @@ const pptCommand = {
             const choice = args[0]?.toLowerCase();
             const betInput = args[1];
             const minBet = 4000;
+            const maxBet = 15000;
+            const cooldown = 5 * 60 * 1000; 
 
             if (!choice || !['piedra', 'papel', 'tijera'].includes(choice)) {
                 return m.reply(`*${config.visuals.emoji2}* Uso correcto: *${usedPrefix}ppt (piedra/papel/tijera) (cantidad)*\nEjemplo: *${usedPrefix}ppt piedra 5000*`);
@@ -27,18 +29,30 @@ const pptCommand = {
                 return m.reply(`*${config.visuals.emoji2}* Debes ingresar una cantidad válida para apostar.`);
             }
 
-            if (bet < minBet) {
-                return m.reply(`*${config.visuals.emoji2}* La apuesta mínima es de **¥${minBet.toLocaleString()}** coins.`);
+            if (bet < minBet || bet > maxBet) {
+                return m.reply(`*${config.visuals.emoji2}* La apuesta debe estar entre **¥${minBet.toLocaleString()}** y **¥${maxBet.toLocaleString()}** coins.`);
             }
 
             if (!fs.existsSync(ecoPath)) fs.outputJsonSync(ecoPath, {});
             let ecoDb = await fs.readJson(ecoPath);
 
-            const userData = ecoDb[user] || { wallet: 0, bank: 0 };
-            const totalMoney = (userData.wallet || 0) + (userData.bank || 0);
+            if (!ecoDb[user]) {
+                ecoDb[user] = { wallet: 0, bank: 0, lastPpt: 0 };
+            }
 
+            const now = Date.now();
+            const timePassed = now - (ecoDb[user].lastPpt || 0);
+
+            if (timePassed < cooldown) {
+                const timeLeft = cooldown - timePassed;
+                const min = Math.floor(timeLeft / 60000);
+                const sec = Math.floor((timeLeft % 60000) / 1000);
+                return m.reply(`*${config.visuals.emoji2}* ¡Tranquilo apostador! Podrás volver a jugar en **${min}m ${sec}s**.`);
+            }
+
+            const totalMoney = (ecoDb[user].wallet || 0) + (ecoDb[user].bank || 0);
             if (totalMoney < bet) {
-                return m.reply(`*${config.visuals.emoji2}* No tienes suficiente dinero para apostar **¥${bet.toLocaleString()}**.\n\n> Usa comandos como \`work\`, \`crime\` o \`mine\` para ganar dinero. ✨`);
+                return m.reply(`*${config.visuals.emoji2}* No tienes suficiente dinero para apostar **¥${bet.toLocaleString()}**.\n\n> Usa comandos como \`work\`, \`crime\` o \`mine\` para ganar dinero.`);
             }
 
             const isWin = Math.random() < 0.95; 
@@ -67,6 +81,7 @@ const pptCommand = {
                 ecoDb[user].wallet = (ecoDb[user].wallet || 0) + bet;
             }
 
+            ecoDb[user].lastPpt = now; // Guardar tiempo de uso
             await fs.writeJson(ecoPath, ecoDb, { spaces: 2 });
 
             const emojiMap = { piedra: '🗿', papel: '📄', tijera: '✂️' };
