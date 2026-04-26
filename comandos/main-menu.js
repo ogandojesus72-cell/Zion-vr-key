@@ -17,7 +17,6 @@ const menuCommand = {
         try {
             const prefix = usedPrefix || '#';
             const botType = config.getBotType(conn);
-            const input = args[0]?.toLowerCase();
 
             const user = m.sender.split('@')[0].split(':')[0];
             const group = m.chat;
@@ -53,7 +52,7 @@ const menuCommand = {
 ┃ https://whatsapp.com/channel/0029Vb6sgWdJkK73qeLU0J0N
 ╰━━━━━━━━━━━━━━━━━━━╯\n`;
 
-            const infoUser = `┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐔𝐒𝐄𝐑 ✿︎━━━━╮
+            const infoUser = `┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐔𝐒𝐄Ｒ ✿︎━━━━╮
 ┃ ✐ *Usuario* »  @${user}
 ┃ ✐ *Rango* » ${rank}
 ┃ ✐ *Coins* » ¥${wallet.toLocaleString()}
@@ -61,20 +60,9 @@ const menuCommand = {
 ╰━━━━━━━━━━━━━━━━━━━╯`;
 
             let header = `¡Hola! Soy ${displayLongName} (${botType}).\n\n`;
-            let subHeader = "";
-            let finalBody = "";
+            let body = Object.values(menuCategories).join('\n\n');
 
-            if (!input) {
-                subHeader = `*☞︎︎︎ Aqui está mi lista de comandos completa ☜︎︎︎*\n\n`;
-                finalBody = Object.values(menuCategories).join('\n\n');
-            } else if (menuCategories[input]) {
-                subHeader = `*☞︎︎︎ Aqui está mi lista de comandos para \`${input.toUpperCase()}\` ☜︎︎︎*\n\n`;
-                finalBody = menuCategories[input];
-            } else {
-                return m.reply(`*${config.visuals.emoji2}* \`Categoría no encontrada\`\n\n*Las categorías disponibles son* »\n${Object.keys(menuCategories).map(c => `> ➪ ${c}`).join('\n')}`);
-            }
-
-            let textoMenu = `${header}${subHeader}${infoBot}\n${infoUser}\n\n${finalBody}`;
+            let textoMenu = `${header}${infoBot}\n${infoUser}\n\n${body}`;
             textoMenu = textoMenu.replace(/\${prefix}/g, prefix);
 
             await conn.sendMessage(m.chat, { 
