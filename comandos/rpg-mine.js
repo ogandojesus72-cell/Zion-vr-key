@@ -5,6 +5,7 @@ import { checkRankUpdate } from './rpg-avisos.js';
 
 const rpgDbPath = path.resolve('./config/database/rpg/rpg.json');
 const economyDbPath = path.resolve('./config/database/economy/economy.json');
+const invPath = path.resolve('./config/database/economy/inventory.json');
 
 const mineCommand = {
     name: 'mine',
@@ -24,19 +25,18 @@ const mineCommand = {
 
             if (fs.existsSync(settingsPath)) {
                 const localData = await fs.readJson(settingsPath);
-                if (localData.shortName) {
-                    displayShortName = localData.shortName;
-                }
+                if (localData.shortName) displayShortName = localData.shortName;
             }
 
             if (!fs.existsSync(rpgDbPath)) fs.outputJsonSync(rpgDbPath, {});
             if (!fs.existsSync(economyDbPath)) fs.outputJsonSync(economyDbPath, {});
+            if (!fs.existsSync(invPath)) fs.outputJsonSync(invPath, {});
 
             let rpgDb = await fs.readJson(rpgDbPath);
             let ecoDb = await fs.readJson(economyDbPath);
+            let invDb = await fs.readJson(invPath);
 
             if (!rpgDb[group]) rpgDb[group] = {};
-
             if (!rpgDb[group][user]) {
                 rpgDb[group][user] = { 
                     minerals: { diamantes: 0, rubies: 0, esmeraldas: 0, zafiros: 0, amatistas: 0, perlas: 0, oro: 0 }, 
@@ -55,6 +55,7 @@ const mineCommand = {
                 return m.reply(`*${config.visuals.emoji2}* ¡Descansa! Podrás volver a minar en **${min}m ${sec}s**.`);
             }
 
+            const tieneIman = invDb[user]?.iman > 0;
             const rewards = {
                 diamantes: Math.floor(Math.random() * 3),
                 rubies: Math.floor(Math.random() * 5),
@@ -65,6 +66,12 @@ const mineCommand = {
                 oro: Math.floor(Math.random() * 15),
                 coins: Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000 
             };
+
+            if (tieneIman) {
+                for (let key in rewards) rewards[key] *= 2;
+                invDb[user].iman -= 1;
+                await fs.writeJson(invPath, invDb, { spaces: 2 });
+            }
 
             for (let key in rewards) {
                 if (key !== 'coins') {
@@ -79,31 +86,14 @@ const mineCommand = {
             ecoDb[user].wallet = (ecoDb[user].wallet || 0) + rewards.coins;
 
             await checkRankUpdate(conn, m, user, group, rpgDb);
-
             await fs.writeJson(rpgDbPath, rpgDb, { spaces: 2 });
             await fs.writeJson(economyDbPath, ecoDb, { spaces: 2 });
 
-            const textoExito = `*${config.visuals.emoji3}* \`MINERÍA ${displayShortName.toUpperCase()}\` *${config.visuals.emoji3}*
+            let textoExito = `*${config.visuals.emoji3}* \`MINERÍA ${displayShortName.toUpperCase()}\` *${config.visuals.emoji3}*\n\n`;
+            if (tieneIman) textoExito += `🧲 *¡EFECTO IMÁN ACTIVADO!* Recursos duplicados.\n\n`;
+            textoExito += `💎 *Diamantes:* ${rewards.diamantes}\n🌹 *Rubíes:* ${rewards.rubies}\n🍃 *Esmeraldas:* ${rewards.esmeraldas}\n🔹 *Zafiros:* ${rewards.zafiros}\n🔮 *Amatistas:* ${rewards.amatistas}\n⚪ *Perlas:* ${rewards.perlas}\n📀 *Oro:* ${rewards.oro}\n\n💰 *Extra:* ¥${rewards.coins.toLocaleString()} coins`;
 
-Has excavado profundamente en las minas de este reino. Recursos obtenidos:
-
-💎 *Diamantes:* ${rewards.diamantes}
-🌹 *Rubíes:* ${rewards.rubies}
-🍃 *Esmeraldas:* ${rewards.esmeraldas}
-🔹 *Zafiros:* ${rewards.zafiros}
-🔮 *Amatistas:* ${rewards.amatistas}
-⚪ *Perlas:* ${rewards.perlas}
-📀 *Oro:* ${rewards.oro}
-
-💰 *Extra:* ¥${rewards.coins.toLocaleString()} coins 
-
-> ¡Sigue explorando las minas para obtener más recursos!`;
-
-            await conn.sendMessage(m.chat, { 
-                image: { url: 'https://upload.yotsuba.giize.com/u/T7JWpsWY.jpeg' }, 
-                caption: textoExito 
-            }, { quoted: m });
-
+            await conn.sendMessage(m.chat, { image: { url: 'https://upload.yotsuba.giize.com/u/T7JWpsWY.jpeg' }, caption: textoExito }, { quoted: m });
         } catch (e) {
             console.error(e);
             m.reply(`*${config.visuals.emoji2}* Error en el sistema de minas.`);
