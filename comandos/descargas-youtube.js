@@ -35,33 +35,38 @@ const youtubeCommand = {
         try {
             const res = await fetch(apiUrl);
             const data = await res.json();
+            
             if (!data.status || !data.result.url) return m.reply('*❁* `Error de Descarga` *❁*');
 
             const downloadUrl = data.result.url;
             const thumb = data.result.info.thumbnail;
             const title = data.result.info.title || 'YouTube Content';
 
-            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${data.result.quality || 'N/A'}\`\n\n> Enviando archivo...`;
+            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${data.result.quality || '128'}\`\n\n> Enviando archivo...`;
 
             await conn.sendMessage(m.chat, { image: { url: thumb }, caption: infoText }, { quoted: m });
 
+            // Enviamos el archivo usando el buffer directamente para evitar errores de URL
+            const fileRes = await fetch(downloadUrl);
+            const fileBuffer = await fileRes.buffer();
+
             if (isDoc) {
                 await conn.sendMessage(m.chat, { 
-                    document: { url: downloadUrl }, 
-                    mimetype: 'video/mp4',
-                    fileName: `${title}.mp4`,
+                    document: fileBuffer, 
+                    mimetype: isVideo ? 'video/mp4' : 'audio/mpeg',
+                    fileName: `${title}.${isVideo ? 'mp4' : 'mp3'}`,
                     caption: `> Descargado por Kazuma Mister Bot`
                 }, { quoted: m });
             } else if (isVideo) {
                 await conn.sendMessage(m.chat, { 
-                    video: { url: downloadUrl }, 
+                    video: fileBuffer, 
                     caption: `> Descargado por Kazuma Mister Bot`,
                     mimetype: 'video/mp4',
                     fileName: `${title}.mp4`
                 }, { quoted: m });
             } else {
                 await conn.sendMessage(m.chat, { 
-                    audio: { url: downloadUrl }, 
+                    audio: fileBuffer, 
                     mimetype: 'audio/mpeg',
                     fileName: `${title}.mp3`
                 }, { quoted: m });
@@ -69,7 +74,7 @@ const youtubeCommand = {
 
         } catch (err) {
             console.error(err);
-            m.reply('*❁* `Error Crítico` *❁*');
+            m.reply('*❁* \`Error Crítico\` *❁*\n\n> El servidor de descarga no respondió correctamente.');
         }
     }
 };
