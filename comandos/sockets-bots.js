@@ -7,48 +7,50 @@ export default {
     alias: ['sockets', 'bots', 'lista'],
     category: 'sockets',
     noPrefix: true,
+    isGroup: true, // El handler se encargará de rebotar si es privado
 
     run: async (conn, m) => {
         try {
             const sessionsPath = path.resolve('./sesiones_subbots');
             const mainBotNumber = conn.user.id.split(':')[0];
+            const groupMetadata = await conn.groupMetadata(m.chat);
+            const participants = groupMetadata.participants.map(p => p.id.split('@')[0]);
 
             let totalSubs = 0;
             let subBotsList = '';
             let mentions = [];
 
             // --- LÓGICA PARA EL BOT PRINCIPAL ---
-            let mainName = config.botName; // Valor por defecto del config
+            // El principal siempre se muestra si está respondiendo, pero verificamos nombre
+            let mainName = config.botName;
             const mainSettingsPath = path.resolve(`./sesiones_subbots/${mainBotNumber}/settings.json`);
             
             if (await fs.pathExists(mainSettingsPath)) {
                 const mainData = await fs.readJson(mainSettingsPath);
                 mainName = mainData.shortName || mainData.longName || config.botName;
             }
+            
             mentions.push(`${mainBotNumber}@s.whatsapp.net`);
             let mainLine = `  ➪ *[Principal ${mainName}]* » @${mainBotNumber}`;
 
-            // --- LÓGICA PARA LOS SUB-BOTS ---
+            // --- LÓGICA PARA LOS SUB-BOTS (FILTRADO POR GRUPO) ---
             if (await fs.pathExists(sessionsPath)) {
                 const folders = await fs.readdir(sessionsPath);
 
                 for (const folder of folders) {
                     const fullPath = path.join(sessionsPath, folder);
-                    
-                    // Validar que sea carpeta y no sea la del principal ni archivos ocultos
                     if (!(await fs.stat(fullPath)).isDirectory() || folder.startsWith('.')) continue;
 
                     const num = folder.replace(/\D/g, '');
                     
-                    if (num && num !== mainBotNumber) {
-                        // Todos los sub-bots empiezan con el nombre del config por si no tienen settings.json
+                    // SEGURIDAD: Solo agregar si el número del sub-bot está en la lista de participantes del grupo
+                    if (num && num !== mainBotNumber && participants.includes(num)) {
                         let subName = config.botName; 
                         const subSettingsPath = path.join(fullPath, 'settings.json');
 
                         if (await fs.pathExists(subSettingsPath)) {
                             try {
                                 const subData = await fs.readJson(subSettingsPath);
-                                // Prioridad: Corto > Largo > Config
                                 subName = subData.shortName || subData.longName || config.botName;
                             } catch (e) {
                                 subName = config.botName; 
@@ -64,9 +66,10 @@ export default {
 
             // --- CONSTRUCCIÓN DEL MENSAJE ---
             const header = `*${config.visuals.emoji3}* \`LISTA DE SOCKETS ACTIVOS\` *${config.visuals.emoji3}*`;
-            const stats = `\n\n*❁ Principal » 1*\n*❀ Subs Totales » ${totalSubs}*\n\n*❀ DETALLE:*`;
+            // Cambiado "DETALLE" por "EN ESTE GRUPO" como pediste
+            const stats = `\n\n*❁ Principal » 1*\n*❀ Subs en este grupo » ${totalSubs}*\n\n*❀ EN ESTE GRUPO:*`;
             
-            const textoFinal = `${header}${stats}\n${mainLine}\n${subBotsList}\n\n> ¡Sistemas operativos y estables!`;
+            const textoFinal = `${header}${stats}\n${mainLine}\n${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
             await conn.sendMessage(m.chat, { 
                 text: textoFinal.trim(),
@@ -75,7 +78,7 @@ export default {
 
         } catch (e) {
             console.error('Error en comando sockets:', e);
-            m.reply(`*${config.visuals.emoji2}* Error al listar los sockets.`);
+            m.reply(`*${config.visuals.emoji2}* Error al filtrar los sockets del grupo.`);
         }
     }
 };
