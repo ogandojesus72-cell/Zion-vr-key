@@ -8,43 +8,47 @@ const followCanalCommand = {
     noPrefix: true,
 
     run: async (conn, m, args, usedPrefix, commandName, text) => {
+        // Si no hay texto, cortamos para evitar errores
         if (!text) return;
 
-        // Extraer el código después de /channel/
-        const code = text.split('/channel/')[1]?.split(' ')[0];
-        if (!code) return m.reply("❌ Link inválido.");
-
         try {
-            // Intentar seguir por ID/Código directamente
-            // Usamos el método interno del socket para newsletters
-            await conn.newsletterFollow(code);
-            await m.reply(`✅ Siguiendo: ${code}`);
-        } catch (err) {
-            // Segundo intento: Forzar vía query de mensajes (iq)
-            try {
-                await conn.query({
-                    tag: 'iq',
-                    attrs: { 
-                        to: '@s.whatsapp.net', 
-                        type: 'set', 
-                        xmlns: 'w:mex' 
-                    },
-                    content: [{
-                        tag: 'query',
-                        attrs: { query_id: '6620195908089573' },
-                        content: JSON.stringify({ 
-                            variables: { 
-                                newsletter_id: code 
-                            } 
-                        })
-                    }]
-                });
-                await m.reply(`✅ Siguiendo (vía query): ${code}`);
-            } catch (e) {
-                // Si aquí no responde nada, el problema es tu versión de Baileys
-                console.error(e);
-                await m.reply("❌ Error total al intentar seguir.");
+            // Extraer el código del canal del link de forma ultra simple
+            const parts = text.split('/');
+            const code = parts[parts.length - 1].trim();
+
+            if (!code) return;
+
+            // Intentar seguir usando la función interna de Baileys
+            // Si tu socket no tiene 'newsletterFollow', saltará al catch
+            if (conn.newsletterFollow) {
+                await conn.newsletterFollow(code);
+                return m.reply(`✅ Siguiendo canal: ${code}`);
             }
+
+            // Si no existe esa función, enviamos el paquete binario (IQ) manualmente
+            await conn.query({
+                tag: 'iq',
+                attrs: { 
+                    to: '@s.whatsapp.net', 
+                    type: 'set', 
+                    xmlns: 'w:mex' 
+                },
+                content: [{
+                    tag: 'query',
+                    attrs: { query_id: '6620195908089573' },
+                    content: JSON.stringify({ 
+                        variables: { 
+                            newsletter_id: code 
+                        } 
+                    })
+                }]
+            });
+
+            await m.reply(`✅ Solicitud de seguimiento enviada.`);
+
+        } catch (err) {
+            // Aquí capturamos cualquier error para que el bot al menos responda algo
+            await m.reply(`❌ Fallo interno: ${err.message}`);
         }
     }
 };
