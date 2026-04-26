@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import axios from 'axios';
 
 const youtubeCommand = {
     name: 'play',
@@ -15,11 +15,9 @@ const youtubeCommand = {
         let finalUrl = text;
         if (!isUrl) {
             try {
-                const searchUrl = `https://nex-magical.vercel.app/search/youtube?q=${encodeURIComponent(text)}&apikey=${apiKey}`;
-                const resSearch = await fetch(searchUrl);
-                const dataSearch = await resSearch.json();
-                if (!dataSearch.status || !dataSearch.result || dataSearch.result.length === 0) return m.reply('*❁* `Sin Resultados` *❁*');
-                finalUrl = dataSearch.result[0].link;
+                const searchRes = await axios.get(`https://nex-magical.vercel.app/search/youtube?q=${encodeURIComponent(text)}&apikey=${apiKey}`);
+                if (!searchRes.data.status || !searchRes.data.result.length) return m.reply('*❁* `Sin Resultados` *❁*');
+                finalUrl = searchRes.data.result[0].link;
             } catch (err) {
                 return m.reply('*❁* `Error de Búsqueda` *❁*');
             }
@@ -30,43 +28,39 @@ const youtubeCommand = {
         const isVideo = ['playvideo', 'ytv', 'playdoc'].includes(commandName);
         const isDoc = commandName === 'playdoc';
         const type = isVideo ? 'video' : 'audio';
-        const apiUrl = `https://nex-magical.vercel.app/download/${type}?url=${encodeURIComponent(finalUrl)}&apikey=${apiKey}`;
 
         try {
-            const res = await fetch(apiUrl);
-            const data = await res.json();
-            
-            if (!data.status || !data.result.url) return m.reply('*❁* `Error de Descarga` *❁*');
+            const downloadRes = await axios.get(`https://nex-magical.vercel.app/download/${type}?url=${encodeURIComponent(finalUrl)}&apikey=${apiKey}`);
+            if (!downloadRes.data.status || !downloadRes.data.result.url) return m.reply('*❁* `Error de Descarga` *❁*');
 
-            const downloadUrl = data.result.url;
-            const thumb = data.result.info.thumbnail;
-            const title = data.result.info.title || 'YouTube Content';
+            const { url: dlUrl, info, quality } = downloadRes.data.result;
+            const title = info.title || 'YouTube Content';
 
-            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${data.result.quality || '128'}\`\n\n> Enviando archivo...`;
+            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${quality || '128'}\`\n\n> Enviando archivo...`;
 
-            await conn.sendMessage(m.chat, { image: { url: thumb }, caption: infoText }, { quoted: m });
+            await conn.sendMessage(m.chat, { image: { url: info.thumbnail }, caption: infoText }, { quoted: m });
 
-            // Enviamos el archivo usando el buffer directamente para evitar errores de URL
-            const fileRes = await fetch(downloadUrl);
-            const fileBuffer = await fileRes.buffer();
+            // DESCARGA DEL BUFFER REAL
+            const fileBuffer = await axios.get(dlUrl, { responseType: 'arraybuffer' });
+            const finalBuffer = Buffer.from(fileBuffer.data);
 
             if (isDoc) {
                 await conn.sendMessage(m.chat, { 
-                    document: fileBuffer, 
+                    document: finalBuffer, 
                     mimetype: isVideo ? 'video/mp4' : 'audio/mpeg',
                     fileName: `${title}.${isVideo ? 'mp4' : 'mp3'}`,
                     caption: `> Descargado por Kazuma Mister Bot`
                 }, { quoted: m });
             } else if (isVideo) {
                 await conn.sendMessage(m.chat, { 
-                    video: fileBuffer, 
-                    caption: `> Descargado por Kazuma Mister Bot`,
+                    video: finalBuffer, 
                     mimetype: 'video/mp4',
-                    fileName: `${title}.mp4`
+                    fileName: `${title}.mp4`,
+                    caption: `> Descargado por Kazuma Mister Bot`
                 }, { quoted: m });
             } else {
                 await conn.sendMessage(m.chat, { 
-                    audio: fileBuffer, 
+                    audio: finalBuffer, 
                     mimetype: 'audio/mpeg',
                     fileName: `${title}.mp3`
                 }, { quoted: m });
@@ -74,7 +68,7 @@ const youtubeCommand = {
 
         } catch (err) {
             console.error(err);
-            m.reply('*❁* \`Error Crítico\` *❁*\n\n> El servidor de descarga no respondió correctamente.');
+            m.reply('*❁* `Error Crítico` *❁*\n\n> El archivo es demasiado pesado o el servidor falló.');
         }
     }
 };
