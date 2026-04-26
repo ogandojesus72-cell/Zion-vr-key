@@ -15,7 +15,7 @@ const youtubeCommand = {
         let finalUrl = text;
         if (!isUrl) {
             try {
-                const searchRes = await axios.get(`https://nex-magical.vercel.app/search/youtube?q=${encodeURIComponent(text)}&apikey=${apiKey}`);
+                const searchRes = await axios.get(`https://nex-magical.vercel.app/search/youtube?q=${encodeURIComponent(text)}&apikey=${apiKey}`, { timeout: 10000 });
                 if (!searchRes.data.status || !searchRes.data.result.length) return m.reply('*❁* `Sin Resultados` *❁*');
                 finalUrl = searchRes.data.result[0].link;
             } catch (err) {
@@ -30,18 +30,25 @@ const youtubeCommand = {
         const type = isVideo ? 'video' : 'audio';
 
         try {
-            const downloadRes = await axios.get(`https://nex-magical.vercel.app/download/${type}?url=${encodeURIComponent(finalUrl)}&apikey=${apiKey}`);
+            const downloadRes = await axios.get(`https://nex-magical.vercel.app/download/${type}?url=${encodeURIComponent(finalUrl)}&apikey=${apiKey}`, { timeout: 15000 });
             if (!downloadRes.data.status || !downloadRes.data.result.url) return m.reply('*❁* `Error de Descarga` *❁*');
 
             const { url: dlUrl, info, quality } = downloadRes.data.result;
             const title = info.title || 'YouTube Content';
 
-            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${quality || '128'}\`\n\n> Enviando archivo...`;
+            const infoText = `*» (❍ᴥ❍ʋ) \`YOUTUBE ${type.toUpperCase()}\` «*\n> ꕥ Contenido obtenido con éxito.\n\n*✿︎ Título:* \`${title}\`\n*✿︎ Calidad:* \`${quality || 'estándar'}\`\n\n> Enviando archivo...`;
 
             await conn.sendMessage(m.chat, { image: { url: info.thumbnail }, caption: infoText }, { quoted: m });
 
-            // DESCARGA DEL BUFFER REAL
-            const fileBuffer = await axios.get(dlUrl, { responseType: 'arraybuffer' });
+            // Intento de descarga con buffer y configuración de headers
+            const fileBuffer = await axios.get(dlUrl, { 
+                responseType: 'arraybuffer',
+                timeout: 60000, // 1 minuto de margen para archivos grandes
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            });
+
             const finalBuffer = Buffer.from(fileBuffer.data);
 
             if (isDoc) {
@@ -55,20 +62,23 @@ const youtubeCommand = {
                 await conn.sendMessage(m.chat, { 
                     video: finalBuffer, 
                     mimetype: 'video/mp4',
-                    fileName: `${title}.mp4`,
                     caption: `> Descargado por Kazuma Mister Bot`
                 }, { quoted: m });
             } else {
                 await conn.sendMessage(m.chat, { 
                     audio: finalBuffer, 
                     mimetype: 'audio/mpeg',
-                    fileName: `${title}.mp3`
+                    ptt: false 
                 }, { quoted: m });
             }
 
         } catch (err) {
-            console.error(err);
-            m.reply('*❁* `Error Crítico` *❁*\n\n> El archivo es demasiado pesado o el servidor falló.');
+            console.error('Detalle del error:', err.message);
+            if (err.code === 'ECONNABORTED') {
+                m.reply('*❁* `Error de Tiempo` *❁*\n\n> El servidor tardó demasiado en responder.');
+            } else {
+                m.reply('*❁* `Error Crítico` *❁*\n\n> No se pudo procesar el archivo. Prueba con otro enlace.');
+            }
         }
     }
 };
