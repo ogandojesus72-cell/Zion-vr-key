@@ -127,12 +127,21 @@ async function startBot() {
         let m = chatUpdate.messages[0];
         if (!m.message) return;
 
-        const body = (m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "").trim();
-        const prefixes = config.allPrefixes || ['#', '!', '.'];
+        const body = (
+            m.message.conversation || 
+            m.message.extendedTextMessage?.text || 
+            m.message.imageMessage?.caption || 
+            m.message.videoMessage?.caption || ""
+        ).trim();
 
+        const prefixes = config.allPrefixes || ['#', '!', '.'];
         const hasPrefix = prefixes.some(p => body.startsWith(p));
+        
         const isNoPrefixCmd = Array.from(global.commands.values()).some(cmd => 
-            cmd.noPrefix && (body.toLowerCase() === cmd.name.toLowerCase() || (cmd.alias && cmd.alias.includes(body.toLowerCase())))
+            cmd.noPrefix && (
+                body.toLowerCase().startsWith(cmd.name.toLowerCase()) || 
+                (cmd.alias && cmd.alias.some(a => body.toLowerCase().startsWith(a.toLowerCase())))
+            )
         );
 
         if (m.key.fromMe && !hasPrefix && !isNoPrefixCmd) return;
@@ -161,6 +170,7 @@ async function startBot() {
                 msg: q, 
                 id: contextInfo.stanzaId,
                 mimetype: q?.mimetype || '',
+                text: q?.text || q?.caption || contextInfo.quotedMessage.conversation || '',
                 key: {
                     remoteJid: m.chat,
                     fromMe: contextInfo.participant === conn.user.id.split(':')[0] + '@s.whatsapp.net',
