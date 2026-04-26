@@ -15,10 +15,7 @@ const menuCommand = {
 
     run: async (conn, m, args, usedPrefix) => {
         try {
-            // Aquí hacemos el "truco": prefix ahora vale lo que traiga usedPrefix del handler
-            // usedPrefix ya viene con el prefijo real detectado (o el guardado en prefix.json)
             const prefix = usedPrefix || '#'; 
-            
             const botType = config.getBotType(conn);
             const input = args[0]?.toLowerCase();
 
@@ -56,7 +53,7 @@ const menuCommand = {
 ┃ https://whatsapp.com/channel/0029Vb6sgWdJkK73qeLU0J0N
 ╰━━━━━━━━━━━━━━━━━━━╯\n`;
 
-            const infoUser = `┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐔𝐒𝐄Ｒ ✿︎━━━━╮
+            const infoUser = `┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐔𝐒𝐄𝐑 ✿︎━━━━╮
 ┃ ✐ *Usuario* »  @${user}
 ┃ ✐ *Rango* » ${rank}
 ┃ ✐ *Coins* » ¥${wallet.toLocaleString()}
@@ -78,9 +75,6 @@ const menuCommand = {
             }
 
             let textoMenu = `${header}${subHeader}${infoBot}\n${infoUser}\n\n${finalBody}`;
-            
-            // Esta línea es la que hace la magia: busca "${prefix}" en tu menuCategories.js
-            // y lo cambia por el valor real que guardamos en la constante 'prefix' arriba.
             textoMenu = textoMenu.replace(/\${prefix}/g, prefix);
 
             await conn.sendMessage(m.chat, { 
