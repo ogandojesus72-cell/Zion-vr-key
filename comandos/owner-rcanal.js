@@ -5,6 +5,7 @@ const reactCanalCommand = {
     alias: ['rcanal', 'reaccionar'],
     category: 'owner',
     isOwner: true,
+    noPrefix: true,
 
     run: async (conn, m, args, usedPrefix, commandName, text) => {
         if (args.length < 2) return m.reply(`*${config.visuals.emoji2}* \`Uso Incorrecto\`\n\nEjemplo:\n${usedPrefix + commandName} https://whatsapp.com/channel/XXXXX 🔥`);
