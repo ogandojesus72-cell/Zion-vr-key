@@ -56,7 +56,7 @@ const chestCommand = {
                 const timeLeft = cooldown - timePassed;
                 const min = Math.floor(timeLeft / 60000);
                 const sec = Math.floor((timeLeft % 60000) / 1000);
-                return m.reply(`*${config.visuals.emoji2}* ¡Cofre vacío! Debes esperar **${min}m ${sec}s** para buscar otro.${!tieneEscudo ? '\n\n🛡️ *Tip:* El Escudo de Mazmorra reduce este tiempo a la mitad.' : ''}`);
+                return m.reply(`*${config.visuals.emoji2}* ¡Cofre vacío! Debes esperar *${min}m ${sec}s* para buscar otro.${!tieneEscudo ? '\n\n🛡️ *Tip:* El Escudo de Mazmorra reduce este tiempo a la mitad.' : ''}`);
             }
 
             if (tieneEscudo) {
