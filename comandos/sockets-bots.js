@@ -80,7 +80,7 @@ export default {
             const totalMostrados = (mainBotLine ? 1 : 0) + totalSubs;
             const stats = `\n\n*❁ Principal » ${mainBotLine ? '1' : '0'}*\n*❀ Subs en este grupo » ${totalSubs}*\n\n*❀ En este grupo (${totalMostrados}):*`;
             
-            const textoFinal = `${header}${stats}\n${mainBotLine}${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
+            const textoFinal = `${header}${stats}\n${mainBotLine}${subBotsList}\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
             if (!mainBotLine && !subBotsList) {
                 return m.reply(`*${config.visuals.emoji2}* No hay sockets de mi sistema en este grupo.`);
