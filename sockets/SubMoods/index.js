@@ -51,10 +51,8 @@ export const startMoodBot = async (userId, mainConn = null) => {
         if (connection === 'close') {
             const code = lastDisconnect?.error?.output?.statusCode;
             if (code !== DisconnectReason.loggedOut) {
-                console.log(chalk.magenta(`[SubMood] ⚠️ Reconectando Mood: ${userNumber}`));
                 setTimeout(() => startMoodBot(jid, mainConn), 5000);
             } else {
-                console.log(chalk.red(`[SubMood] ❌ Sesión Mood finalizada: ${userNumber}`));
                 global.moodBots.delete(jid);
                 await fs.remove(userSessionPath);
             }
@@ -78,7 +76,6 @@ export const startMoodBot = async (userId, mainConn = null) => {
         const msgType = Object.keys(m.message)[0];
         if (msgType === 'protocolMessage' || msgType === 'senderKeyDistributionMessage') return;
 
-        // Estructura simplificada de quoted para el handler
         if (m.message[msgType]?.contextInfo?.quotedMessage) {
             const q = m.message[msgType].contextInfo;
             m.quoted = {
@@ -100,7 +97,6 @@ export const startMoodBot = async (userId, mainConn = null) => {
 export const loadAllMoodBots = async (mainConn) => {
     if (!(await fs.pathExists(moodPath))) return;
     const sessions = await fs.readdir(moodPath);
-    console.log(chalk.magenta(`[SISTEMA] 🚀 Reanudando ${sessions.length} SubMoods...`));
     for (const num of sessions) {
         if (num.includes('.') || isNaN(num)) continue; 
         await new Promise(r => setTimeout(r, 2500));
