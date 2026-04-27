@@ -122,9 +122,9 @@ export default {
             const header = `*${config.visuals.emoji3}* \`LISTA DE SOCKETS ACTIVOS\` *${config.visuals.emoji3}*`;
             const totalLocal = localMoods + localSubs;
 
-            const stats = `\n\n❁ Moods » *${globalMoods}*\n❀ Subs » *${globalSubs}*\n\n❀ En este grupo (${totalLocal}):`;
+            const stats = `\n\n❁ Moods » *${globalMoods}*\n❀ Subs » *${globalSubs}*\n\n❀ En este grupo *(${totalLocal})*:`;
 
-            const textoFinal = `${header}${stats}\n${mainBotLine}${moodBotsList}${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
+            const textoFinal = `${header}${stats}\n${mainBotLine}${moodBotsList}${subBotsList}\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
             if (totalLocal === 0) {
                 return m.reply(`*${config.visuals.emoji2}* No hay sockets de mi sistema en este grupo.`);
