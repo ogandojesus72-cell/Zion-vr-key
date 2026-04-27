@@ -2,10 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 export const config = {
-    botName: 'Kazuma',
+    botName: 'Zion-vr-key',
     owner: [
-        '573508941325@s.whatsapp.net', 
-        '125860308893859@lid'
+        '18299839355@s.whatsapp.net', 
+        '12586030889859@lid'
     ], 
     prefix: '#',
     allPrefixes: ['#', '!', '.'],
