@@ -64,7 +64,7 @@ export const pixelHandler = async (conn, m, config) => {
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (foundPrefix && !cmd) {
-            return m.reply(`*${config.visuals.emoji2}* El comando \`${usedPrefix}${commandName}\` no existe.\n> Usa *${usedPrefix}help*`);
+            return m.reply(`*${config.visuals.emoji2}* El comando \`${usedPrefix}${commandName}\` no fue encontrado.\n> Para ver mi lista completa de comandos usa:\n» *${usedPrefix}help*`);
         }
 
         if (!cmd) return;
