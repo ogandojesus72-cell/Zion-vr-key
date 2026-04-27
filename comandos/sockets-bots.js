@@ -83,7 +83,7 @@ export default {
             const header = `*${config.visuals.emoji3}* \`LISTA DE SOCKETS ACTIVOS\` *${config.visuals.emoji3}*`;
             const totalLocal = (mainBotLine ? 1 : 0) + localSubs;
             
-            const stats = `\n\n*❁ Mood » ${mainBotNumber ? '1' : '0'}*\n*❀ Subs Globales » ${globalSubs}*\n\n*❀ En este grupo (${totalLocal}):*`;
+            const stats = `\n\n*❁ Mood » ${mainBotNumber ? '1' : '0'}*\n*❀ Subs » ${globalSubs}*\n\n*❀ En este grupo (${totalLocal}):*`;
 
             const textoFinal = `${header}${stats}\n${mainBotLine}${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
