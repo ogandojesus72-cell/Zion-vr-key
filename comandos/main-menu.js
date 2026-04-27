@@ -71,7 +71,7 @@ const menuCommand = {
 ┃ ✐ *Diamantes* » ${diamantes}
 ╰━━━━━━━━━━━━━━━━━━━╯`;
 
-            let header = `¡Hola! Soy ${displayLongName} (${currentBotType}).\n\n`;
+            let header = `¡Hola! Soy ${displayLongName} *(${currentBotType})*.\n\n`;
             let subHeader = "";
             let finalBody = "";
 
