@@ -16,26 +16,37 @@ const menuCommand = {
     run: async (conn, m, args, usedPrefix) => {
         try {
             const prefix = usedPrefix || '#'; 
-            const botType = config.getBotType(conn);
-            const input = args[0]?.toLowerCase();
-
             const user = m.sender.split('@')[0].split(':')[0];
             const group = m.chat;
+            const botNumber = conn.user.id.split(':')[0].replace(/\D/g, '');
 
-            const botNumber = conn.user.id.split(':')[0];
-            const settingsPath = path.resolve(`./sesiones_subbots/${botNumber}/settings.json`);
+            const subSessionsPath = path.resolve('./sesiones_subbots');
+            const moodSessionsPath = path.resolve('./sesiones_moods');
+            
+            let settingsPath = '';
+            let currentBotType = 'Mood';
+
+            if (await fs.pathExists(path.join(subSessionsPath, botNumber))) {
+                settingsPath = path.join(subSessionsPath, botNumber, 'settings.json');
+                currentBotType = 'SubBot';
+            } else if (await fs.pathExists(path.join(moodSessionsPath, botNumber))) {
+                settingsPath = path.join(moodSessionsPath, botNumber, 'settings.json');
+                currentBotType = 'Mood';
+            } else {
+                currentBotType = 'Mood';
+            }
 
             let displayLongName = config.botName;
             let displayBanner = config.visuals.img1;
 
-            if (fs.existsSync(settingsPath)) {
+            if (settingsPath && await fs.pathExists(settingsPath)) {
                 const localData = await fs.readJson(settingsPath);
                 if (localData.longName) displayLongName = localData.longName;
                 if (localData.banner) displayBanner = localData.banner;
             }
 
-            const ecoDB = fs.existsSync(ecoPath) ? await fs.readJson(ecoPath) : {};
-            const rpgDB = fs.existsSync(rpgPath) ? await fs.readJson(rpgPath) : {};
+            const ecoDB = await fs.pathExists(ecoPath) ? await fs.readJson(ecoPath) : {};
+            const rpgDB = await fs.pathExists(rpgPath) ? await fs.readJson(rpgPath) : {};
 
             const wallet = ecoDB[user]?.wallet || 0;
             const userRpg = rpgDB[group]?.[user] || {};
@@ -60,10 +71,11 @@ const menuCommand = {
 ┃ ✐ *Diamantes* » ${diamantes}
 ╰━━━━━━━━━━━━━━━━━━━╯`;
 
-            let header = `¡Hola! Soy ${displayLongName} (${botType}).\n\n`;
+            let header = `¡Hola! Soy ${displayLongName} (${currentBotType}).\n\n`;
             let subHeader = "";
             let finalBody = "";
 
+            const input = args[0]?.toLowerCase();
             if (!input) {
                 subHeader = `*☞︎︎︎ Aqui está mi lista de comandos completa ☜︎︎︎*\n\n`;
                 finalBody = Object.values(menuCategories).join('\n\n');
