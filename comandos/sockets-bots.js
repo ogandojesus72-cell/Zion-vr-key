@@ -25,7 +25,7 @@ export default {
             const mainSessionPath = path.resolve('./sesion_bot');
             const subSessionsPath = path.resolve('./sesiones_subbots');
             const moodSessionsPath = path.resolve('./sesiones_moods');
-            
+
             const groupMetadata = await conn.groupMetadata(m.chat);
             const participants = groupMetadata.participants.map(p => p.id.split('@')[0]);
 
@@ -34,7 +34,7 @@ export default {
             let globalMoods = 1; 
             let localSubs = 0;
             let localMoods = 0;
-            
+
             let subBotsList = '';
             let moodBotsList = '';
             let mainBotLine = '';
@@ -67,7 +67,19 @@ export default {
                     if (hasCreds) {
                         globalMoods++;
                         if (num !== mainBotNumber && participants.includes(num)) {
-                            moodBotsList += `  ➪ *[Mood SubMood]* » @${num}\n`;
+                            let moodName = config.botName;
+                            const moodSettingsPath = path.join(fullPath, 'settings.json');
+
+                            if (await fs.pathExists(moodSettingsPath)) {
+                                try {
+                                    const moodData = await fs.readJson(moodSettingsPath);
+                                    moodName = moodData.shortName || moodData.longName || config.botName;
+                                } catch (e) {
+                                    moodName = config.botName;
+                                }
+                            }
+
+                            moodBotsList += `  ➪ *[Mood ${moodName}]* » @${num}\n`;
                             mentions.push(`${num}@s.whatsapp.net`);
                             localMoods++;
                         }
@@ -110,7 +122,7 @@ export default {
             const header = `*${config.visuals.emoji3}* \`LISTA DE SOCKETS ACTIVOS\` *${config.visuals.emoji3}*`;
             const totalLocal = localMoods + localSubs;
 
-            const stats = `\n\n*❁ Mood » ${globalMoods}*\n*❀ Subs » ${globalSubs}*\n\n*❀ En este grupo (${totalLocal}):*`;
+            const stats = `\n\n*❁ Moods » ${globalMoods}*\n*❀ Subs » ${globalSubs}*\n\n*❀ En este grupo (${totalLocal}):*`;
 
             const textoFinal = `${header}${stats}\n${mainBotLine}${moodBotsList}${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
