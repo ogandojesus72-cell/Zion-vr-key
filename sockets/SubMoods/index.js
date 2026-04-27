@@ -37,7 +37,7 @@ export const startMoodBot = async (userId, mainConn = null) => {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, P({ level: 'silent' })),
         },
-        browser: Browsers.macOS('Desktop'), 
+        browser: ['Opera', 'MacOS', '3.0.0'], 
         markOnlineOnConnect: true,
         shouldIgnoreJid: () => false
     });
