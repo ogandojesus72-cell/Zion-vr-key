@@ -49,7 +49,7 @@ export default {
             }
 
             if (mainBotNumber && participants.includes(mainBotNumber)) {
-                mainBotLine = `  ➪ *[Mood ${config.botName}]* » @${mainBotNumber}\n`;
+                mainBotLine = `  ✿︎ *[Mood • ${config.botName}]* » @${mainBotNumber}\n`;
                 mentions.push(`${mainBotNumber}@s.whatsapp.net`);
                 localMoods++;
             }
@@ -79,7 +79,7 @@ export default {
                                 }
                             }
 
-                            moodBotsList += `  ➪ *[Mood ${moodName}]* » @${num}\n`;
+                            moodBotsList += `  ✿︎ *[Mood • ${moodName}]* » @${num}\n`;
                             mentions.push(`${num}@s.whatsapp.net`);
                             localMoods++;
                         }
@@ -112,7 +112,7 @@ export default {
                             }
                         }
 
-                        subBotsList += `  ➪ *[Sub ${subName}]* » @${num}\n`;
+                        subBotsList += `  ✿︎ *[Sub • ${subName}]* » @${num}\n`;
                         mentions.push(`${num}@s.whatsapp.net`);
                         localSubs++;
                     }
@@ -122,7 +122,7 @@ export default {
             const header = `*${config.visuals.emoji3}* \`LISTA DE SOCKETS ACTIVOS\` *${config.visuals.emoji3}*`;
             const totalLocal = localMoods + localSubs;
 
-            const stats = `\n\n*❁ Moods » ${globalMoods}*\n*❀ Subs » ${globalSubs}*\n\n*❀ En este grupo (${totalLocal}):*`;
+            const stats = `\n\n❁ Moods » *${globalMoods}*\n❀ Subs » *${globalSubs}*\n\n❀ En este grupo (${totalLocal}):`;
 
             const textoFinal = `${header}${stats}\n${mainBotLine}${moodBotsList}${subBotsList}\n\n> ¡Sistemas operativos y estables en esta comunidad!`;
 
