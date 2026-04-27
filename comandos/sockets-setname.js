@@ -12,7 +12,7 @@ const setBotName = {
         try {
             const from = m.chat;
             const user = m.sender.split('@')[0].split(':')[0];
-            const botNumber = conn.user.id.split(':')[0];
+            const botNumber = conn.user.id.split(':')[0].replace(/\D/g, '');
             const isOwner = config.owner.includes(m.sender);
 
             if (botNumber !== user && !isOwner) {
@@ -51,17 +51,23 @@ const setBotName = {
                 }, { quoted: m });
             }
 
-            const sessionsPath = path.resolve('./sesiones_subbots');
-            const userSettingsPath = path.join(sessionsPath, botNumber, 'settings.json');
+            const subSessionsPath = path.resolve('./sesiones_subbots');
+            const moodSessionsPath = path.resolve('./sesiones_moods');
+            
+            let userSettingsPath = '';
 
-            if (!fs.existsSync(path.join(sessionsPath, botNumber))) {
+            if (await fs.pathExists(path.join(subSessionsPath, botNumber))) {
+                userSettingsPath = path.join(subSessionsPath, botNumber, 'settings.json');
+            } else if (await fs.pathExists(path.join(moodSessionsPath, botNumber))) {
+                userSettingsPath = path.join(moodSessionsPath, botNumber, 'settings.json');
+            } else {
                 return await conn.sendMessage(from, { 
-                    text: `*${config.visuals.emoji2}* Carpeta de sesión no encontrada.` 
+                    text: `*${config.visuals.emoji2}* Carpeta de sesión no encontrada en el sistema.` 
                 }, { quoted: m });
             }
 
             let localConfig = {};
-            if (fs.existsSync(userSettingsPath)) {
+            if (await fs.pathExists(userSettingsPath)) {
                 localConfig = await fs.readJson(userSettingsPath);
             }
 
