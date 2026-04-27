@@ -54,12 +54,12 @@ const moodCodeCommand = {
             await new Promise(resolve => setTimeout(resolve, 3000));
 
             let code = await sock.requestPairingCode(targetNumber);
-            if (!code) throw new Error("Fallo al generar código de vinculación");
+            if (!code) throw new Error("No se pudo generar el código");
 
             code = code?.match(/.{1,4}/g)?.join('-') || code;
 
             const msgInstrucciones = await conn.sendMessage(from, { 
-                text: `✿︎ \`VINCULACIÓN DE SUBMOOD\` ✿︎\n\n*❁* \`Instrucciones:\` \nDispositivos vinculados > vincular dispositivo > Usar número de teléfono.\n\n\`Código:\` *${code}*\n\n> Tienes 60 segundos antes de que el código expire.`
+                text: `✿︎ \`VINCULACIÓN DE SUBMOOD\` ✿︎\n\n*❁* \`Instrucciones:\` \nDispositivos vinculados > vincular dispositivo > Usar número de teléfono.\n\n> El código se enviará a continuación y vence en 60 segundos.`
             });
 
             const msgCodigo = await conn.sendMessage(from, { text: code }, { quoted: msgInstrucciones });
