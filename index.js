@@ -67,7 +67,7 @@ async function startBot() {
     const { version } = await fetchLatestBaileysVersion();
 
     process.stdout.write('\x1Bc');
-    CFonts.say('KAZUMA', { 
+    CFonts.say('ZION', { 
         font: 'block', align: 'center', colors: ['cyan', 'magenta'], background: 'transparent', letterSpacing: 1 
     });
 
