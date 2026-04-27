@@ -23,7 +23,7 @@ export const config = {
         emoji2: '❁',
         emoji3: '✿',
         emoji4: '❀',
-        img1: 'https://files.catbox.moe/9ssbf9.jpg'
+        img1: 'https://upload.yotsuba.giize.com/u/D-nk84iP.jpeg'
     },
 
     apiNex: 'NEX-0868C926ADF94B19A51E18C4'
