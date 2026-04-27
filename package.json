@@ -8,7 +8,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "npm:baileys-leet",
+    "@whiskeysockets/baileys": "github: this-xys/bails",
     "@adiwajshing/keyed-db": "^0.2.4",
     "axios": "^1.6.7",
     "pino": "^8.19.0",
