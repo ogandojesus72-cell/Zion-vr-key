@@ -15,6 +15,7 @@ import chalk from 'chalk';
 import { moodLogger } from './print.js';
 import { pixelHandler } from '../../pixel.js';
 import { config } from '../../config.js';
+import { detectHandler } from '../../comandos/grupos-detect.js';
 import antiLinkHandler from '../../comandos/grupos-antilink.js';
 
 const moodPath = path.resolve('./sesiones_moods');
@@ -44,6 +45,11 @@ export const startMoodBot = async (userId, mainConn = null) => {
     });
 
     global.moodBots.set(jid, sock);
+
+    try {
+        detectHandler(sock);
+    } catch (e) {}
+
     sock.ev.on('creds.update', saveCreds);
 
     sock.ev.on('connection.update', async (update) => {
@@ -51,9 +57,12 @@ export const startMoodBot = async (userId, mainConn = null) => {
 
         if (connection === 'close') {
             const code = lastDisconnect?.error?.output?.statusCode;
-            if (code !== DisconnectReason.loggedOut) {
+            const shouldRestart = code !== DisconnectReason.loggedOut;
+            
+            if (shouldRestart) {
                 setTimeout(() => startMoodBot(jid, mainConn), 5000);
             } else {
+                console.log(chalk.red(` [SubMood] Sesión cerrada para: ${userNumber}`));
                 global.moodBots.delete(jid);
                 await fs.remove(userSessionPath);
             }
