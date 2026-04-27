@@ -51,7 +51,7 @@ const moodCodeCommand = {
             const jidReal = `${targetNumber}@s.whatsapp.net`;
             const sock = await startMoodBot(jidReal, conn);
 
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             let code = await sock.requestPairingCode(targetNumber);
             if (!code) throw new Error("No se pudo generar el código");
@@ -59,7 +59,7 @@ const moodCodeCommand = {
             code = code?.match(/.{1,4}/g)?.join('-') || code;
 
             const msgInstrucciones = await conn.sendMessage(from, { 
-                text: `✿︎ \`VINCULACIÓN DE SUBMOOD\` ✿︎\n\n*❁* \`Instrucciones:\` \nDispositivos vinculados > vincular dispositivo > Usar número de teléfono.\n\n> El código se enviará a continuación y vence en 60 segundos.`
+                text: `✿︎ \`VINCULACIÓN DE SUBMOOD\` ✿︎\n\n*❁* \`Instrucciones:\` \nDispositivos vinculados > vincular dispositivo > Usar número de teléfono.\n\n> Ingresa el código que se enviará a continuación. Vence en 60 segundos.`
             });
 
             const msgCodigo = await conn.sendMessage(from, { text: code }, { quoted: msgInstrucciones });
